@@ -1,0 +1,87 @@
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# dependencies
+/node_modules
+/.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
+
+# testing
+/coverage
+
+# next.js
+/.next/
+/out/
+
+# production
+/build
+
+# misc
+.DS_Store
+*.pem
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# env files (can opt-in for committing if needed)
+.env*
+
+# vercel
+.vercel
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+
+
+# IDE / Editors
+    2 .vscode/*
+    3 !.vscode/extensions.json
+    4 !.vscode/settings.json
+    5 !.vscode/launch.json
+    6 .idea/
+    7 *.suo
+    8 *.ntvs*
+    9 *.njsproj
+   10 *.sln
+   11 *.sw?
+   12
+   13 # OS Files
+   14 .DS_Store
+   15 Thumbs.db
+   16 *.icloud
+   17
+   18 # Critical: Environment and Secrets
+   19 # (You already have .env*, but being explicit is safer)
+   20 .env
+   21 .env.local
+   22 .env.development.local
+   23 .env.test.local
+   24 .env.production.local
+   25 *.secret
+   26 *.pem
+   27 *.key
+   28
+   29 # Tool Caches
+   30 .eslintcache
+   31 .stylelintcache
+   32 .npm
+   33 .turbo
+   34 .parcel-cache
+   35
+   36 # Supabase (Local Development)
+   37 .supabase/
+   38 supabase/.temp/
+   39
+   40 # Deployment / Vercel
+   41 .vercel
+   42 .next/
+   43 /out/
+   44 /build
