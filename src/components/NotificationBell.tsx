@@ -62,18 +62,18 @@ export default function NotificationBell() {
 
   return (
     <div className="relative">
-      <button onClick={() => { setIsOpen(!isOpen); markAllAsRead(); }} className="relative p-2 text-slate-500 hover:bg-slate-100 rounded-full transition">
+      <button onClick={() => { setIsOpen(!isOpen); markAllAsRead(); }} className="relative p-2 text-slate-500 hover:bg-[#FAF9F6]/60 rounded-full transition">
         <Bell size={22} />
         {unreadCount > 0 && (
-          <span className="absolute top-1.5 right-1.5 bg-red-500 text-white text-[10px] font-bold h-4 w-4 flex items-center justify-center rounded-full border-2 border-white">
+          <span className="absolute top-1.5 right-1.5 bg-red-500 text-[#FAF9F6] text-[10px] font-bold h-4 w-4 flex items-center justify-center rounded-full border-2 border-white">
             {unreadCount}
           </span>
         )}
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 mt-3 w-80 bg-white border border-slate-200 shadow-2xl rounded-2xl z-50 overflow-hidden">
-          <div className="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+        <div className="absolute right-0 mt-3 w-80 bg-[#FAF9F6] border border-[#FAF9F6] shadow-2xl rounded-2xl z-50 overflow-hidden">
+          <div className="p-4 border-b border-[#FAF9F6]/50 flex justify-between items-center bg-[#FAF9F6]">
             <h3 className="font-black text-xs uppercase tracking-widest text-slate-800">Notifications</h3>
             <button onClick={() => setIsOpen(false)}><X size={16} className="text-slate-400" /></button>
           </div>
@@ -81,9 +81,9 @@ export default function NotificationBell() {
             {notifications.length === 0 ? (
               <p className="p-8 text-center text-sm text-slate-400">No notifications yet.</p>
             ) : notifications.map(n => (
-              <div key={n.id} className={`p-4 border-b border-slate-50 hover:bg-slate-50 transition ${!n.is_read ? 'bg-blue-50/30' : ''}`}>
+              <div key={n.id} className={`p-4 border-b border-slate-50 hover:bg-[#FAF9F6] transition ${!n.is_read ? 'bg-blue-50/30' : ''}`}>
                 <div className="flex gap-3">
-                  <div className="mt-1 text-[#2E8B57]"><Info size={16}/></div>
+                  <div className="mt-1 text-[#738a6e]"><Info size={16}/></div>
                   <div>
                     <p className="text-sm font-bold text-slate-800">{n.title}</p>
                     <p className="text-xs text-slate-600 mt-0.5">{n.message}</p>

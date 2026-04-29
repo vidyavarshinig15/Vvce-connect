@@ -5,9 +5,12 @@ export interface Profile {
   semester?: string | number;
   email?: string;
   phone?: string;
+  usn?: string;
   skills?: string;
   achievements?: string;
   linkedin_url?: string;
+  resume_link?: string;
+  role?: 'admin' | 'student' | 'faculty' | 'warden';
 }
 
 export interface HackathonTeam {

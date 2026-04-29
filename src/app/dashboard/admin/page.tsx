@@ -39,12 +39,12 @@ export default async function AdminDashboard() {
         <div className="lg:col-span-2 space-y-6">
            <div className="flex items-center justify-between">
               <h3 className="text-xl font-black text-slate-900">Recent User Activity</h3>
-              <button className="text-xs font-bold text-[#2E8B57] hover:underline">View All Users</button>
+              <button className="text-xs font-bold text-[#738a6e] hover:underline">View All Users</button>
            </div>
            
-           <div className="bg-white rounded-[2rem] border border-slate-200 overflow-hidden shadow-sm">
+           <div className="bg-[#FAF9F6] rounded-[2rem] border border-[#FAF9F6] overflow-hidden shadow-sm">
              <table className="w-full text-left border-collapse">
-               <thead className="bg-slate-50 border-b border-slate-100">
+               <thead className="bg-[#FAF9F6] border-b border-[#FAF9F6]/50">
                  <tr>
                    <th className="p-4 text-[10px] font-black uppercase text-slate-400 tracking-widest">User Details</th>
                    <th className="p-4 text-[10px] font-black uppercase text-slate-400 tracking-widest">Role</th>
@@ -53,7 +53,7 @@ export default async function AdminDashboard() {
                </thead>
                <tbody className="divide-y divide-slate-50">
                  {recentUsers?.map(user => (
-                   <tr key={user.id} className="hover:bg-slate-50/50 transition-colors">
+                   <tr key={user.id} className="hover:bg-[#FAF9F6]/50 transition-colors">
                      <td className="p-4">
                        <p className="font-bold text-slate-800 text-sm">{user.full_name}</p>
                        <p className="text-xs text-slate-400 font-medium">{user.email}</p>
@@ -61,7 +61,7 @@ export default async function AdminDashboard() {
                      <td className="p-4">
                         <span className={`text-[10px] font-black uppercase px-2 py-1 rounded-lg ${
                           user.role === 'admin' ? 'bg-red-50 text-red-600' :
-                          user.role === 'faculty' ? 'bg-emerald-50 text-emerald-600' :
+                          user.role === 'faculty' ? 'bg-[#FAF9F6]/40 text-emerald-600' :
                           'bg-blue-50 text-blue-600'
                         }`}>
                           {user.role}
@@ -93,14 +93,14 @@ export default async function AdminDashboard() {
 
 function StatCard({ label, value, icon, status = false }: { label: string, value: any, icon: React.ReactNode, status?: boolean }) {
   return (
-    <div className="bg-white p-6 rounded-[2rem] border border-slate-200 shadow-sm">
-      <div className="w-10 h-10 bg-slate-50 rounded-xl flex items-center justify-center mb-4">
+    <div className="bg-[#FAF9F6] p-6 rounded-[2rem] border border-[#FAF9F6] shadow-sm">
+      <div className="w-10 h-10 bg-[#FAF9F6] rounded-xl flex items-center justify-center mb-4">
         {icon}
       </div>
       <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{label}</p>
       <div className="flex items-center gap-2">
         <p className="text-3xl font-black text-slate-900 tracking-tight">{value}</p>
-        {status && <div className="w-2 h-2 bg-emerald-500 rounded-full animate-ping"></div>}
+        {status && <div className="w-2 h-2 bg-[#FAF9F6]/400 rounded-full animate-ping"></div>}
       </div>
     </div>
   );
@@ -108,8 +108,8 @@ function StatCard({ label, value, icon, status = false }: { label: string, value
 
 function AdminAction({ title, desc }: { title: string, desc: string }) {
   return (
-    <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm hover:border-[#2E8B57] transition-colors cursor-pointer group">
-       <h4 className="font-bold text-slate-800 text-sm group-hover:text-[#2E8B57] transition-colors">{title}</h4>
+    <div className="bg-[#FAF9F6] p-5 rounded-2xl border border-[#FAF9F6] shadow-sm hover:border-[#738a6e] transition-colors cursor-pointer group">
+       <h4 className="font-bold text-slate-800 text-sm group-hover:text-[#738a6e] transition-colors">{title}</h4>
        <p className="text-xs text-slate-400 font-medium">{desc}</p>
     </div>
   );

@@ -1,15 +1,16 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/src/utils/supabase/server';
-import { supabaseAdmin } from '@/src/lib/supabase-admin';
 
 type ProfileUpdatePayload = {
   full_name?: string;
   phone?: string;
   branch?: string;
   semester?: number | null;
+  usn?: string;
   skills?: string;
   achievements?: string;
   linkedin_url?: string;
+  resume_link?: string;
 };
 
 export async function POST(request: Request) {
@@ -24,6 +25,8 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    console.log('Profile update route accessed by user:', user.id);
+
     const body = (await request.json()) as ProfileUpdatePayload;
 
     const updates: ProfileUpdatePayload = {
@@ -36,17 +39,19 @@ export async function POST(request: Request) {
       linkedin_url: body.linkedin_url ?? '',
     };
 
-    const { error } = await supabaseAdmin
+    const { error } = await supabase
       .from('profiles')
       .update(updates)
       .eq('id', user.id);
 
     if (error) {
+      console.error('Profile Update DB Error:', error);
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
     return NextResponse.json({ message: 'Profile updated successfully' }, { status: 200 });
   } catch (error) {
+    console.error('Profile Update Catch Error:', error);
     const message = error instanceof Error ? error.message : 'Unknown error';
     return NextResponse.json({ error: message }, { status: 500 });
   }

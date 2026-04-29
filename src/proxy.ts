@@ -1,8 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server';
-// FIX: Since middleware.ts is already inside 'src', we just point directly to './utils'
 import { updateSession } from './utils/supabase/middleware';
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   // 1. Refresh the user's session and get their Auth status
   const { supabaseResponse, user } = await updateSession(request);
 

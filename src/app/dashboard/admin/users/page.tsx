@@ -20,9 +20,7 @@ export default function UserManagement() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<any>(null);
 
-  useEffect(() => { loadData(); }, []);
-
-  const loadData = async () => {
+  async function loadData() {
     setLoading(true);
     try {
       const [{ data: profiles }, { data: allocs }] = await Promise.all([
@@ -34,6 +32,8 @@ export default function UserManagement() {
     } catch (err) { console.error(err); }
     setLoading(false);
   };
+
+  useEffect(() => { loadData(); }, []);
 
   const filteredUsers = users.filter(u => {
     const matchesSearch = u.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) || u.email?.toLowerCase().includes(searchTerm.toLowerCase());
@@ -122,7 +122,7 @@ export default function UserManagement() {
     }
   };
 
-  if (loading) return <div className="p-8 flex justify-center"><Loader2 className="animate-spin text-[#2E8B57]" size={40} /></div>;
+  if (loading) return <div className="p-8 flex justify-center"><Loader2 className="animate-spin text-[#738a6e]" size={40} /></div>;
 
   return (
     <div className="max-w-7xl mx-auto space-y-8 pb-20">
@@ -132,14 +132,14 @@ export default function UserManagement() {
           <p className="text-slate-500 font-medium">Manage and export all student, faculty, and staff data.</p>
         </div>
         <div className="flex gap-3">
-          <button onClick={downloadCSV} className="flex items-center gap-2 bg-slate-900 text-white font-bold py-3 px-6 rounded-2xl hover:bg-slate-800 transition-all shadow-lg">
+          <button onClick={downloadCSV} className="flex items-center gap-2 bg-[#738a6e] text-[#FAF9F6] font-bold py-3 px-6 rounded-2xl hover:bg-[#94A185] transition-all shadow-lg">
             <Download size={18} /> Export Data
           </button>
         </div>
       </div>
 
       {/* FILTER BAR */}
-      <div className="bg-white p-6 rounded-[2rem] border border-slate-200 shadow-sm space-y-6">
+      <div className="bg-[#FAF9F6] p-6 rounded-[2rem] border border-[#FAF9F6] shadow-sm space-y-6">
         <div className="flex flex-wrap gap-4">
           <div className="flex-1 min-w-[200px] relative">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
@@ -148,7 +148,7 @@ export default function UserManagement() {
               placeholder="Search by name or email..." 
               value={searchTerm} 
               onChange={e => setSearchQuery(e.target.value)}
-              className="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-100 rounded-xl outline-none focus:border-[#2E8B57] font-medium"
+              className="w-full pl-12 pr-4 py-3 bg-[#FAF9F6] border border-[#FAF9F6]/50 rounded-xl outline-none focus:border-[#738a6e] font-medium"
             />
           </div>
           
@@ -160,9 +160,9 @@ export default function UserManagement() {
       </div>
 
       {/* USER TABLE */}
-      <div className="bg-white rounded-[2rem] border border-slate-200 overflow-hidden shadow-sm">
+      <div className="bg-[#FAF9F6] rounded-[2rem] border border-[#FAF9F6] overflow-hidden shadow-sm">
         <table className="w-full text-left border-collapse">
-          <thead className="bg-slate-50 border-b border-slate-100">
+          <thead className="bg-[#FAF9F6] border-b border-[#FAF9F6]/50">
             <tr>
               <th className="p-4 text-[10px] font-black uppercase text-slate-400 tracking-widest">Basic Details</th>
               <th className="p-4 text-[10px] font-black uppercase text-slate-400 tracking-widest">Academic Info</th>
@@ -174,10 +174,10 @@ export default function UserManagement() {
             {filteredUsers.map(user => {
               const isHosteller = allocations.some(a => a.student_email === user.email);
               return (
-                <tr key={user.id} className="hover:bg-slate-50/50 transition-colors">
+                <tr key={user.id} className="hover:bg-[#FAF9F6]/50 transition-colors">
                   <td className="p-4">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 bg-slate-100 rounded-full flex items-center justify-center font-bold text-slate-400">
+                      <div className="w-10 h-10 bg-[#FAF9F6]/60 rounded-full flex items-center justify-center font-bold text-slate-400">
                         {user.full_name?.[0]}
                       </div>
                       <div>
@@ -191,13 +191,13 @@ export default function UserManagement() {
                     <p className="text-[10px] text-slate-400 font-medium">{user.branch} • Sem {user.semester || 'N/A'}</p>
                   </td>
                   <td className="p-4">
-                    <span className={`text-[10px] font-black uppercase px-2 py-1 rounded-lg ${isHosteller ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-100 text-slate-400'}`}>
+                    <span className={`text-[10px] font-black uppercase px-2 py-1 rounded-lg ${isHosteller ? 'bg-[#FAF9F6]/40 text-emerald-600' : 'bg-[#FAF9F6]/60 text-slate-400'}`}>
                       {isHosteller ? 'Hosteller' : 'Day Scholar'}
                     </span>
                   </td>
                   <td className="p-4 text-right">
                     <div className="flex justify-end gap-2">
-                       <button onClick={() => { setEditingUser(user); setIsModalOpen(true); }} className="p-2 text-slate-400 hover:text-[#2E8B57] transition-colors"><Edit2 size={16}/></button>
+                       <button onClick={() => { setEditingUser(user); setIsModalOpen(true); }} className="p-2 text-slate-400 hover:text-[#738a6e] transition-colors"><Edit2 size={16}/></button>
                        <button onClick={() => handleDelete(user.id, user.email)} className="p-2 text-slate-400 hover:text-red-500 transition-colors"><Trash2 size={16}/></button>
                     </div>
                   </td>
@@ -214,16 +214,16 @@ export default function UserManagement() {
       {/* EDIT MODAL */}
       {isModalOpen && editingUser && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-           <div className="bg-white rounded-[2.5rem] p-8 max-w-2xl w-full shadow-2xl relative">
+           <div className="bg-[#FAF9F6] rounded-[2.5rem] p-8 max-w-2xl w-full shadow-2xl relative">
               <button onClick={() => setIsModalOpen(false)} className="absolute top-6 right-6 text-slate-400 hover:text-slate-700"><X size={24} /></button>
               <h3 className="text-2xl font-black text-slate-800 mb-6">Modify User Profile</h3>
               
               <form onSubmit={handleUpdate} className="grid grid-cols-2 gap-4">
-                <div className="space-y-1"><label className="text-[10px] font-black text-slate-400 uppercase">Full Name</label><input value={editingUser.full_name} onChange={e=>setEditingUser({...editingUser, full_name: e.target.value})} className="w-full p-3 bg-slate-50 border rounded-xl" /></div>
-                <div className="space-y-1"><label className="text-[10px] font-black text-slate-400 uppercase">Phone</label><input value={editingUser.phone || ''} onChange={e=>setEditingUser({...editingUser, phone: e.target.value})} className="w-full p-3 bg-slate-50 border rounded-xl" /></div>
+                <div className="space-y-1"><label className="text-[10px] font-black text-slate-400 uppercase">Full Name</label><input value={editingUser.full_name} onChange={e=>setEditingUser({...editingUser, full_name: e.target.value})} className="w-full p-3 bg-[#FAF9F6] border rounded-xl" /></div>
+                <div className="space-y-1"><label className="text-[10px] font-black text-slate-400 uppercase">Phone</label><input value={editingUser.phone || ''} onChange={e=>setEditingUser({...editingUser, phone: e.target.value})} className="w-full p-3 bg-[#FAF9F6] border rounded-xl" /></div>
                 <div className="space-y-1">
                   <label className="text-[10px] font-black text-slate-400 uppercase">Branch</label>
-                  <select value={editingUser.branch || ''} onChange={e=>setEditingUser({...editingUser, branch: e.target.value})} className="w-full p-3 bg-slate-50 border rounded-xl">
+                  <select value={editingUser.branch || ''} onChange={e=>setEditingUser({...editingUser, branch: e.target.value})} className="w-full p-3 bg-[#FAF9F6] border rounded-xl">
                     <option value="">Select Branch</option>
                     <option value="CSE">CSE</option>
                     <option value="ISE">ISE</option>
@@ -231,9 +231,9 @@ export default function UserManagement() {
                     <option value="ECE">ECE</option>
                   </select>
                 </div>
-                <div className="space-y-1"><label className="text-[10px] font-black text-slate-400 uppercase">Semester</label><input type="number" value={editingUser.semester || ''} onChange={e=>setEditingUser({...editingUser, semester: e.target.value})} className="w-full p-3 bg-slate-50 border rounded-xl" /></div>
-                <div className="col-span-2 space-y-1"><label className="text-[10px] font-black text-slate-400 uppercase">Skills</label><input value={editingUser.skills || ''} onChange={e=>setEditingUser({...editingUser, skills: e.target.value})} className="w-full p-3 bg-slate-50 border rounded-xl" /></div>
-                <button type="submit" className="col-span-2 mt-4 bg-[#2E8B57] text-white font-black py-4 rounded-xl shadow-lg">Save User Changes</button>
+                <div className="space-y-1"><label className="text-[10px] font-black text-slate-400 uppercase">Semester</label><input type="number" value={editingUser.semester || ''} onChange={e=>setEditingUser({...editingUser, semester: e.target.value})} className="w-full p-3 bg-[#FAF9F6] border rounded-xl" /></div>
+                <div className="col-span-2 space-y-1"><label className="text-[10px] font-black text-slate-400 uppercase">Skills</label><input value={editingUser.skills || ''} onChange={e=>setEditingUser({...editingUser, skills: e.target.value})} className="w-full p-3 bg-[#FAF9F6] border rounded-xl" /></div>
+                <button type="submit" className="col-span-2 mt-4 bg-[#738a6e] text-[#FAF9F6] font-black py-4 rounded-xl shadow-lg">Save User Changes</button>
               </form>
            </div>
         </div>
@@ -249,7 +249,7 @@ function FilterSelect({ label, value, onChange, options }: any) {
       <select 
         value={value} 
         onChange={e => onChange(e.target.value)}
-        className="block w-full p-3 bg-slate-50 border border-slate-100 rounded-xl outline-none focus:border-[#2E8B57] font-bold text-xs"
+        className="block w-full p-3 bg-[#FAF9F6] border border-[#FAF9F6]/50 rounded-xl outline-none focus:border-[#738a6e] font-bold text-xs"
       >
         {options.map((opt: any) => <option key={opt} value={opt}>{opt}</option>)}
       </select>

@@ -58,10 +58,10 @@ export default function LoginPage() {
 
       {/* Login Card */}
       <div className="relative z-10 w-full max-w-md px-6 py-12">
-        <div className="bg-white/95 backdrop-blur-md rounded-[2.5rem] p-10 shadow-2xl border border-white/20">
+        <div className="bg-[#FAF9F6]/95 backdrop-blur-md rounded-[2.5rem] p-10 shadow-2xl border border-white/20">
           <div className="text-center mb-8">
             <h1 className="text-4xl font-black text-slate-900 tracking-tighter uppercase m-0">Log In</h1>
-            <p className="text-xs font-bold text-[#2E8B57] uppercase tracking-widest mt-2 m-0">Portal Access</p>
+            <p className="text-xs font-bold text-[#738a6e] uppercase tracking-widest mt-2 m-0">Portal Access</p>
           </div>
 
           <form onSubmit={handleLogin} className="space-y-5">
@@ -73,7 +73,7 @@ export default function LoginPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value.toLowerCase())}
                 placeholder="college email ID" 
-                className="w-full p-4 bg-slate-50 border border-slate-100 rounded-2xl outline-none focus:border-[#2E8B57] transition font-medium text-slate-800" 
+                className="w-full p-4 bg-[#FAF9F6] border border-[#FAF9F6]/50 rounded-2xl outline-none focus:border-[#738a6e] transition font-medium text-slate-800" 
               />
             </div>
 
@@ -85,7 +85,7 @@ export default function LoginPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••" 
-                className="w-full p-4 bg-slate-50 border border-slate-100 rounded-2xl outline-none focus:border-[#2E8B57] transition font-medium text-slate-800" 
+                className="w-full p-4 bg-[#FAF9F6] border border-[#FAF9F6]/50 rounded-2xl outline-none focus:border-[#738a6e] transition font-medium text-slate-800" 
               />
               <button 
                 type="button" 
@@ -95,7 +95,7 @@ export default function LoginPage() {
                 {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
               </button>
               <div className="text-right mt-1">
-                <Link href="/forgot-password" title="Forgot Password?" className="text-xs font-bold text-[#2E8B57] uppercase tracking-tighter hover:underline">Forgot Password?</Link>
+                <Link href="/forgot-password" title="Forgot Password?" className="text-xs font-bold text-[#738a6e] uppercase tracking-tighter hover:underline">Forgot Password?</Link>
               </div>
             </div>
 
@@ -107,7 +107,7 @@ export default function LoginPage() {
 
             <button 
               disabled={loading}
-              className="w-full bg-[#2E8B57] text-white font-black py-4 rounded-2xl shadow-xl shadow-emerald-600/20 hover:bg-[#257046] transition-all transform active:scale-[0.98] mt-4 uppercase tracking-widest flex items-center justify-center gap-2 disabled:opacity-70"
+              className="w-full bg-[#738a6e] text-[#FAF9F6] font-black py-4 rounded-2xl shadow-xl shadow-emerald-600/20 hover:bg-[#94A185] transition-all transform active:scale-[0.98] mt-4 uppercase tracking-widest flex items-center justify-center gap-2 disabled:opacity-70"
             >
               {loading ? (
                 <>
@@ -120,9 +120,9 @@ export default function LoginPage() {
             </button>
           </form>
 
-          <div className="mt-8 text-center border-t border-slate-100 pt-6">
+          <div className="mt-8 text-center border-t border-[#FAF9F6]/50 pt-6">
             <p className="text-xs font-bold text-slate-500 m-0">
-              New Student? <Link href="/signup" className="text-[#2E8B57] hover:underline font-black uppercase">Register</Link>
+              New Student? <Link href="/signup" className="text-[#738a6e] hover:underline font-black uppercase">Register</Link>
             </p>
           </div>
         </div>

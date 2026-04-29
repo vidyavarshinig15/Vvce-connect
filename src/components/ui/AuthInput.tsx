@@ -27,13 +27,13 @@ export default function AuthInput({ label, type, value, onChange, placeholder }:
           onChange={onChange}
           placeholder={placeholder}
           required
-          className={`w-full p-4 bg-slate-100/50 border border-slate-200 rounded-2xl outline-none focus:border-[#2E8B57] transition-all text-sm text-slate-900 placeholder:text-slate-400 ${isPassword ? 'pr-12' : 'pr-4'}`}
+          className={`w-full p-4 bg-[#FAF9F6]/60/50 border border-[#FAF9F6] rounded-2xl outline-none focus:border-[#738a6e] transition-all text-sm text-slate-900 placeholder:text-slate-400 ${isPassword ? 'pr-12' : 'pr-4'}`}
         />
         {isPassword && (
           <button
             type="button"
             onClick={() => setShowPassword(!showPassword)}
-            className="absolute right-4 text-slate-400 hover:text-[#2E8B57] transition-colors p-1 z-10"
+            className="absolute right-4 text-slate-400 hover:text-[#738a6e] transition-colors p-1 z-10"
             aria-label={showPassword ? "Hide password" : "Show password"}
           >
             {showPassword ? <EyeOff size={18} strokeWidth={2.5} /> : <Eye size={18} strokeWidth={2.5} />}

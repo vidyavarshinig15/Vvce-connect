@@ -44,7 +44,7 @@ export default function SystemSettings() {
                <select 
                  value={config.academicYear} 
                  onChange={e => setProfileConfig({...config, academicYear: e.target.value})}
-                 className="w-full p-3 bg-slate-50 border border-slate-100 rounded-xl font-bold text-sm outline-none focus:border-[#2E8B57]"
+                 className="w-full p-3 bg-[#FAF9F6] border border-[#FAF9F6]/50 rounded-xl font-bold text-sm outline-none focus:border-[#738a6e]"
                >
                  <option>2025 - 2026</option>
                  <option>2026 - 2027</option>
@@ -55,7 +55,7 @@ export default function SystemSettings() {
                <select 
                  value={config.semester} 
                  onChange={e => setProfileConfig({...config, semester: e.target.value})}
-                 className="w-full p-3 bg-slate-50 border border-slate-100 rounded-xl font-bold text-sm outline-none focus:border-[#2E8B57]"
+                 className="w-full p-3 bg-[#FAF9F6] border border-[#FAF9F6]/50 rounded-xl font-bold text-sm outline-none focus:border-[#738a6e]"
                >
                  <option>Even Semester</option>
                  <option>Odd Semester</option>
@@ -110,7 +110,7 @@ export default function SystemSettings() {
         </SettingsSection>
 
         <div className="flex justify-end pt-6">
-           <button onClick={handleSave} className="flex items-center gap-2 bg-[#2E8B57] text-white font-black py-4 px-10 rounded-2xl shadow-lg hover:bg-[#257046] transition-all">
+           <button onClick={handleSave} className="flex items-center gap-2 bg-[#738a6e] text-[#FAF9F6] font-black py-4 px-10 rounded-2xl shadow-lg hover:bg-[#94A185] transition-all">
              {saving ? <Loader2 className="animate-spin" size={20} /> : <Save size={20} />}
              Save Configuration
            </button>
@@ -123,9 +123,9 @@ export default function SystemSettings() {
 
 function SettingsSection({ icon, title, desc, children }: any) {
   return (
-    <div className="bg-white rounded-[2rem] border border-slate-200 overflow-hidden shadow-sm">
+    <div className="bg-[#FAF9F6] rounded-[2rem] border border-[#FAF9F6] overflow-hidden shadow-sm">
       <div className="p-6 border-b border-slate-50 flex items-center gap-4">
-        <div className="w-10 h-10 bg-slate-50 rounded-xl flex items-center justify-center">
+        <div className="w-10 h-10 bg-[#FAF9F6] rounded-xl flex items-center justify-center">
           {icon}
         </div>
         <div>
@@ -146,9 +146,9 @@ function Toggle({ label, active, onToggle }: any) {
       <span className="text-sm font-bold text-slate-600">{label}</span>
       <div 
         onClick={onToggle}
-        className={`w-12 h-6 rounded-full relative cursor-pointer transition-colors ${active ? 'bg-[#2E8B57]' : 'bg-slate-200'}`}
+        className={`w-12 h-6 rounded-full relative cursor-pointer transition-colors ${active ? 'bg-[#738a6e]' : 'bg-slate-200'}`}
       >
-        <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${active ? 'left-7' : 'left-1'}`}></div>
+        <div className={`absolute top-1 w-4 h-4 bg-[#FAF9F6] rounded-full transition-all ${active ? 'left-7' : 'left-1'}`}></div>
       </div>
     </div>
   );
