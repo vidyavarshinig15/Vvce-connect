@@ -73,10 +73,10 @@ export default function SignupPage() {
 
       {/* REGISTER CARD */}
       <div className="relative z-10 w-full max-w-md px-6 py-10">
-        <div className="bg-white/95 backdrop-blur-md rounded-[2.5rem] p-8 md:p-10 shadow-2xl border border-white/20">
+        <div className="bg-[#FAF9F6]/95 backdrop-blur-md rounded-[2.5rem] p-8 md:p-10 shadow-2xl border border-white/20">
           <div className="text-center mb-8">
             <h1 className="text-4xl font-black text-slate-900 tracking-tighter uppercase m-0">Register</h1>
-            <p className="text-xs font-bold text-[#2E8B57] uppercase tracking-widest mt-2 m-0">Create Student Account</p>
+            <p className="text-xs font-bold text-[#738a6e] uppercase tracking-widest mt-2 m-0">Create Student Account</p>
           </div>
 
           <form onSubmit={handleRegister} className="space-y-5">
@@ -88,7 +88,7 @@ export default function SignupPage() {
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
                 placeholder="Enter your full name" 
-                className="w-full p-4 bg-slate-50 border border-slate-100 rounded-2xl outline-none focus:border-[#2E8B57] transition font-medium text-slate-800" 
+                className="w-full p-4 bg-[#FAF9F6] border border-[#FAF9F6]/50 rounded-2xl outline-none focus:border-[#738a6e] transition font-medium text-slate-800" 
               />
             </div>
 
@@ -100,7 +100,7 @@ export default function SignupPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value.toLowerCase())}
                 placeholder="name@vvce.ac.in" 
-                className="w-full p-4 bg-slate-50 border border-slate-100 rounded-2xl outline-none focus:border-[#2E8B57] transition font-medium text-slate-800" 
+                className="w-full p-4 bg-[#FAF9F6] border border-[#FAF9F6]/50 rounded-2xl outline-none focus:border-[#738a6e] transition font-medium text-slate-800" 
               />
             </div>
 
@@ -112,7 +112,7 @@ export default function SignupPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••" 
-                className="w-full p-4 bg-slate-50 border border-slate-100 rounded-2xl outline-none focus:border-[#2E8B57] transition font-medium text-slate-800" 
+                className="w-full p-4 bg-[#FAF9F6] border border-[#FAF9F6]/50 rounded-2xl outline-none focus:border-[#738a6e] transition font-medium text-slate-800" 
               />
               <button 
                 type="button" 
@@ -124,14 +124,14 @@ export default function SignupPage() {
             </div>
 
             {status && (
-              <p className={`text-xs font-bold uppercase tracking-widest text-center ${status.type === 'error' ? 'text-red-500' : 'text-[#2E8B57]'}`}>
+              <p className={`text-xs font-bold uppercase tracking-widest text-center ${status.type === 'error' ? 'text-red-500' : 'text-[#738a6e]'}`}>
                 {status.msg}
               </p>
             )}
 
             <button 
               disabled={loading}
-              className="w-full bg-[#2E8B57] text-white font-black py-4 rounded-2xl shadow-xl shadow-emerald-600/20 hover:bg-[#257046] transition-all transform active:scale-[0.98] uppercase tracking-widest flex items-center justify-center gap-2 mt-2 disabled:opacity-70"
+              className="w-full bg-[#738a6e] text-[#FAF9F6] font-black py-4 rounded-2xl shadow-xl shadow-emerald-600/20 hover:bg-[#94A185] transition-all transform active:scale-[0.98] uppercase tracking-widest flex items-center justify-center gap-2 mt-2 disabled:opacity-70"
             >
               {loading ? (
                 <>
@@ -147,9 +147,9 @@ export default function SignupPage() {
             </button>
           </form>
 
-          <div className="mt-8 text-center border-t border-slate-100 pt-6">
+          <div className="mt-8 text-center border-t border-[#FAF9F6]/50 pt-6">
             <p className="text-xs font-bold text-slate-500 m-0">
-              Already have an account? <Link href="/login" className="text-[#2E8B57] hover:underline font-black uppercase">Log In</Link>
+              Already have an account? <Link href="/login" className="text-[#738a6e] hover:underline font-black uppercase">Log In</Link>
             </p>
           </div>
         </div>

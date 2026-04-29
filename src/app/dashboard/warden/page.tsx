@@ -1,14 +1,9 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { createClient } from '@/src/utils/supabase/client';
-import { HostelService } from '@/src/services/supabase/hostel.service';
-import { NotificationsService } from '@/src/services/supabase/notifications.service';
 import { Building, Users, AlertTriangle, Megaphone, Search, Send, MapPin, CheckCircle2, Clock, Loader2, XCircle, FileText, PlusCircle } from 'lucide-react';
 
 export default function WardenDashboard() {
-  const supabase = createClient();
   const [loading, setLoading] = useState(true);
-  const [currentUserId, setCurrentUserId] = useState('');
   const [activeTab, setActiveTab] = useState('directory'); // directory, map, complaints, announcements
   
   // Data States
@@ -17,6 +12,7 @@ export default function WardenDashboard() {
   const [announcements, setAnnouncements] = useState<any[]>([]);
   // Form States
   const [searchQuery, setSearchQuery] = useState('');
+  const [mapHostel, setMapHostel] = useState('Boys Hostel');
   const [announcementForm, setAnnouncementForm] = useState({ title: '', content: '', hostel_name: 'Boys Hostel' });
   const [complaintResponse, setComplaintResponse] = useState({ id: '', status: '', response: '' });
 
@@ -34,41 +30,51 @@ export default function WardenDashboard() {
   const [viewProfileModalOpen, setViewProfileModalOpen] = useState(false);
   const [selectedStudentProfile, setSelectedStudentProfile] = useState<any>(null);
 
-  useEffect(() => { loadData(); }, []);
-
-  const loadData = async () => {
+  async function loadData() {
     setLoading(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) setCurrentUserId(user.id);
+      const res = await fetch('/api/warden/dashboard', { method: 'GET' });
+      const payload = await res.json();
 
-      // Load Allocations
-      const { data: allocData } = await HostelService.getAllocations('');
-      if (allocData) setAllocations(allocData);
-      
-      // Load Complaints
-      const { data: compData } = await HostelService.getComplaints('');
-      if (compData) setComplaints(compData);
+      if (!res.ok) {
+        throw new Error(payload?.error || 'Failed to load dashboard');
+      }
 
-      // Load Announcements
-      const { data: annData } = await HostelService.getAnnouncements('');
-      if (annData) setAnnouncements(annData);
+      setAllocations(payload.allocations ?? []);
+      setComplaints(payload.complaints ?? []);
+      setAnnouncements(payload.announcements ?? []);
       
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
+      alert(err.message || 'Failed to load dashboard data. Please refresh.');
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
+
+  useEffect(() => { loadData(); }, []);
 
   const handleAdmission = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    const roomNum = admissionForm.room_number.trim();
+    if (!roomNum) return;
+
+    const email = admissionForm.student_email.toLowerCase().trim();
+
+    // DUPLICATE CHECK
+    const alreadyAllocated = allocations.find(a => a.student_email.toLowerCase() === email);
+    if (alreadyAllocated) {
+      alert(`ERROR: Student with email ${email} is already allocated to Room ${alreadyAllocated.room_number} in ${alreadyAllocated.hostel_name}.`);
+      return;
+    }
+
     // CAPACITY CHECK
-    const occupants = allocations.filter(a => a.hostel_name === admissionForm.hostel_name && a.room_number === admissionForm.room_number);
+    const occupants = allocations.filter(a => a.hostel_name === admissionForm.hostel_name && a.room_number === roomNum);
     const capacity = occupants.length > 0 ? parseInt(occupants[0].sharing_type?.toString() || '2') : parseInt(admissionForm.sharing_type);
     
     if (occupants.length >= capacity) {
-      alert(`ERROR: Room ${admissionForm.room_number} is already FULL (${occupants.length}/${capacity}). Please choose another room.`);
+      alert(`ERROR: Room ${roomNum} is already FULL (${occupants.length}/${capacity}). Please choose another room.`);
       return;
     }
 
@@ -76,7 +82,15 @@ export default function WardenDashboard() {
     try {
       const res = await fetch('/api/warden/allocations', {
         method: 'POST',
-        body: JSON.stringify({ action: 'insert', allocationData: admissionForm })
+        body: JSON.stringify({ 
+          action: 'insert', 
+          allocationData: {
+            ...admissionForm,
+            student_email: email,
+            room_number: roomNum,
+            sharing_type: parseInt(admissionForm.sharing_type)
+          } 
+        })
       });
       const data = await res.json();
       if (res.ok) {
@@ -91,6 +105,7 @@ export default function WardenDashboard() {
       }
     } catch (err) {
       console.error(err);
+      alert("An unexpected error occurred.");
     } finally {
       setLoading(false);
     }
@@ -122,10 +137,15 @@ export default function WardenDashboard() {
 
   const openStudentProfile = async (email: string) => {
     try {
-      // First check profiles table
-      const { data: profile } = await HostelService.getProfileByEmail(email);
-      // Also get their allocation info for USN/Branch fallback
-      const { data: allocation } = await HostelService.getAllocationByEmail(email);
+      const res = await fetch(`/api/warden/dashboard?email=${encodeURIComponent(email)}`);
+      const payload = await res.json();
+
+      if (!res.ok) {
+        throw new Error(payload?.error || 'Profile not found');
+      }
+
+      const profile = payload.profile;
+      const allocation = payload.allocation;
       
       if (profile || allocation) {
         setSelectedStudentProfile({
@@ -146,57 +166,77 @@ export default function WardenDashboard() {
   };
 
   const filteredAllocations = allocations.filter(a => 
-    a.student_name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-    a.room_number.toLowerCase().includes(searchQuery.toLowerCase())
+    (a.student_name?.toLowerCase() || '').includes(searchQuery.toLowerCase()) || 
+    (a.room_number?.toLowerCase() || '').includes(searchQuery.toLowerCase()) ||
+    (a.usn?.toLowerCase() || '').includes(searchQuery.toLowerCase()) ||
+    (a.student_email?.toLowerCase() || '').includes(searchQuery.toLowerCase())
   );
 
   const handleUpdateComplaint = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!complaintResponse.id) return;
     
-    const { error } = await HostelService.updateComplaintStatus(currentUserId, complaintResponse.id, complaintResponse.status, complaintResponse.response);
+    setLoading(true);
+    try {
+      const res = await fetch('/api/warden/complaints', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          complaintId: complaintResponse.id,
+          status: complaintResponse.status,
+          response: complaintResponse.response,
+        }),
+      });
+      const payload = await res.json();
+      const error = res.ok ? null : (payload?.error || 'Failed to update complaint');
 
-    if (!error) {
-      // Find the student to notify
-      const complaint = complaints.find(c => c.id === complaintResponse.id);
-      if (complaint && complaint.student_email) {
-        // Fetch user ID by email to send notification
-        const { data: userData } = await HostelService.getProfileByEmail(complaint.student_email);
-        if (userData) {
-          await NotificationsService.createNotification(
-            userData.id,
-            `Complaint ${complaintResponse.status}`,
-            `Warden Response: ${complaintResponse.response}`,
-            'hostel'
-          );
-        }
+      if (!error) {
+        alert("Status updated and student notified!");
+        setComplaintResponse({ id: '', status: '', response: '' });
+        await loadData();
+      } else {
+        alert("Error: " + error);
       }
-      alert("Status updated and student notified!");
-      setComplaintResponse({ id: '', status: '', response: '' });
-      loadData();
-    } else {
-      alert("Error: " + (typeof error === 'string' ? error : error.message));
+    } catch (err) {
+      console.error(err);
+      alert("Failed to update complaint.");
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleCreateAnnouncement = async (e: React.FormEvent) => {
     e.preventDefault();
-    const { error } = await HostelService.createAnnouncement(currentUserId, {
-      title: announcementForm.title,
-      content: announcementForm.content,
-      hostel_name: announcementForm.hostel_name
-    });
+    setLoading(true);
+    try {
+      const res = await fetch('/api/warden/announcements', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+        title: announcementForm.title,
+        content: announcementForm.content,
+        hostel_name: announcementForm.hostel_name
+        })
+      });
+      const payload = await res.json();
+      const error = res.ok ? null : (payload?.error || 'Failed to create announcement');
 
-    if (!error) {
-      alert("Notice Published to Student Dashboards!");
-      setAnnouncementForm({ title: '', content: '', hostel_name: 'Boys Hostel' });
-      loadData();
-    } else {
-      alert("Error: " + (typeof error === 'string' ? error : error.message));
+      if (!error) {
+        alert("Notice Published to Student Dashboards!");
+        setAnnouncementForm({ title: '', content: '', hostel_name: 'Boys Hostel' });
+        await loadData();
+      } else {
+        alert("Error: " + error);
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Failed to publish announcement.");
+    } finally {
+      setLoading(false);
     }
   };
 
-  if (loading) return <div className="min-h-screen flex items-center justify-center"><Loader2 className="animate-spin text-[#2E8B57]" size={40} /></div>;
+  if (loading) return <div className="min-h-screen flex items-center justify-center"><Loader2 className="animate-spin text-[#738a6e]" size={40} /></div>;
 
   return (
     <div className="max-w-7xl mx-auto space-y-8 pb-12">
@@ -205,55 +245,61 @@ export default function WardenDashboard() {
       </div>
 
       {/* TABS */}
-      <div className="flex flex-wrap gap-4 mb-8 border-b border-slate-200 pb-2">
-        <button onClick={() => setActiveTab('directory')} className={`pb-4 font-bold text-sm px-2 flex items-center gap-2 ${activeTab === 'directory' ? 'text-[#2E8B57] border-b-2 border-[#2E8B57]' : 'text-slate-400 hover:text-slate-600'}`}><Users size={18}/> Student Directory</button>
-        <button onClick={() => setActiveTab('map')} className={`pb-4 font-bold text-sm px-2 flex items-center gap-2 ${activeTab === 'map' ? 'text-[#2E8B57] border-b-2 border-[#2E8B57]' : 'text-slate-400 hover:text-slate-600'}`}><MapPin size={18}/> Room Map</button>
-        <button onClick={() => setActiveTab('complaints')} className={`pb-4 font-bold text-sm px-2 flex items-center gap-2 ${activeTab === 'complaints' ? 'text-[#2E8B57] border-b-2 border-[#2E8B57]' : 'text-slate-400 hover:text-slate-600'}`}>
-          <AlertTriangle size={18}/> Complaints {complaints.filter(c => c.status === 'Pending').length > 0 && <span className="bg-red-500 text-white text-[10px] px-2 py-0.5 rounded-full">{complaints.filter(c => c.status === 'Pending').length}</span>}
+      <div className="flex flex-wrap gap-4 mb-8 border-b border-[#FAF9F6] pb-2">
+        <button onClick={() => setActiveTab('directory')} className={`pb-4 font-bold text-sm px-2 flex items-center gap-2 ${activeTab === 'directory' ? 'text-[#738a6e] border-b-2 border-[#738a6e]' : 'text-slate-400 hover:text-slate-600'}`}><Users size={18}/> Student Directory</button>
+        <button onClick={() => setActiveTab('map')} className={`pb-4 font-bold text-sm px-2 flex items-center gap-2 ${activeTab === 'map' ? 'text-[#738a6e] border-b-2 border-[#738a6e]' : 'text-slate-400 hover:text-slate-600'}`}><MapPin size={18}/> Room Map</button>
+        <button onClick={() => setActiveTab('complaints')} className={`pb-4 font-bold text-sm px-2 flex items-center gap-2 ${activeTab === 'complaints' ? 'text-[#738a6e] border-b-2 border-[#738a6e]' : 'text-slate-400 hover:text-slate-600'}`}>
+          <AlertTriangle size={18}/> Complaints {complaints.filter(c => c.status === 'Pending').length > 0 && <span className="bg-red-500 text-[#FAF9F6] text-[10px] px-2 py-0.5 rounded-full">{complaints.filter(c => c.status === 'Pending').length}</span>}
         </button>
-        <button onClick={() => setActiveTab('announcements')} className={`pb-4 font-bold text-sm px-2 flex items-center gap-2 ${activeTab === 'announcements' ? 'text-[#2E8B57] border-b-2 border-[#2E8B57]' : 'text-slate-400 hover:text-slate-600'}`}><Megaphone size={18}/> Announcements</button>
+        <button onClick={() => setActiveTab('announcements')} className={`pb-4 font-bold text-sm px-2 flex items-center gap-2 ${activeTab === 'announcements' ? 'text-[#738a6e] border-b-2 border-[#738a6e]' : 'text-slate-400 hover:text-slate-600'}`}><Megaphone size={18}/> Announcements</button>
       </div>
 
       {/* DIRECTORY TAB */}
       {activeTab === 'directory' && (
         <div className="space-y-8">
           {/* ADMISSION FORM */}
-          <div className="bg-white p-8 rounded-3xl border shadow-sm">
-            <h3 className="text-xl font-black text-slate-800 mb-6 flex items-center gap-2"><PlusCircle className="text-[#2E8B57]"/> Manual Student Admission</h3>
+          <div className="bg-[#FAF9F6] p-8 rounded-3xl border shadow-sm">
+            <h3 className="text-xl font-black text-slate-800 mb-6 flex items-center gap-2"><PlusCircle className="text-[#738a6e]"/> Manual Student Admission</h3>
             <form onSubmit={handleAdmission} className="grid grid-cols-1 md:grid-cols-4 gap-x-4 gap-y-6">
               <div className="space-y-1">
                 <label className="text-[10px] font-black text-slate-500 uppercase ml-1">Student Name</label>
-                <input required value={admissionForm.student_name} onChange={e => setAdmissionForm({...admissionForm, student_name: e.target.value})} placeholder="Full Name" className="w-full p-3 bg-slate-50 border rounded-xl" />
+                <input required value={admissionForm.student_name} onChange={e => setAdmissionForm({...admissionForm, student_name: e.target.value})} placeholder="Full Name" className="w-full p-3 bg-[#FAF9F6] border rounded-xl" />
               </div>
               <div className="space-y-1">
                 <label className="text-[10px] font-black text-slate-500 uppercase ml-1">Phone Number</label>
-                <input required value={admissionForm.phone} onChange={e => setAdmissionForm({...admissionForm, phone: e.target.value})} placeholder="Phone Number" className="w-full p-3 bg-slate-50 border rounded-xl" />
+                <input required value={admissionForm.phone} onChange={e => setAdmissionForm({...admissionForm, phone: e.target.value})} placeholder="Phone Number" className="w-full p-3 bg-[#FAF9F6] border rounded-xl" />
               </div>
               <div className="space-y-1">
                 <label className="text-[10px] font-black text-slate-500 uppercase ml-1">USN</label>
-                <input required value={admissionForm.usn} onChange={e => setAdmissionForm({...admissionForm, usn: e.target.value})} placeholder="e.g. 4VV21CS001" className="w-full p-3 bg-slate-50 border rounded-xl" />
+                <input required value={admissionForm.usn} onChange={e => setAdmissionForm({...admissionForm, usn: e.target.value})} placeholder="e.g. 4VV21CS001" className="w-full p-3 bg-[#FAF9F6] border rounded-xl" />
               </div>
               <div className="space-y-1">
                 <label className="text-[10px] font-black text-slate-500 uppercase ml-1">Email ID</label>
-                <input required type="email" value={admissionForm.student_email} onChange={e => setAdmissionForm({...admissionForm, student_email: e.target.value})} placeholder="student@vvce.ac.in" className="w-full p-3 bg-slate-50 border rounded-xl" />
+                <input required type="email" value={admissionForm.student_email} onChange={e => setAdmissionForm({...admissionForm, student_email: e.target.value})} placeholder="student@vvce.ac.in" className="w-full p-3 bg-[#FAF9F6] border rounded-xl" />
               </div>
               <div className="space-y-1">
                 <label className="text-[10px] font-black text-slate-500 uppercase ml-1">Branch</label>
-                <select value={admissionForm.branch} onChange={e => setAdmissionForm({...admissionForm, branch: e.target.value})} className="w-full p-3 bg-slate-50 border rounded-xl">
-                  <option>CSE</option><option>ISE</option><option>AIML</option><option>ECE</option><option>EEE</option><option>ME</option><option>CV</option>
+                <select value={admissionForm.branch} onChange={e => setAdmissionForm({...admissionForm, branch: e.target.value})} className="w-full p-3 bg-[#FAF9F6] border rounded-xl">
+                  <option value="CSE">CSE</option>
+                  <option value="ISE">ISE</option>
+                  <option value="AIML">AIML</option>
+                  <option value="ECE">ECE</option>
+                  <option value="EEE">EEE</option>
+                  <option value="ME">ME</option>
+                  <option value="CV">CV</option>
                 </select>
               </div>
               <div className="space-y-1">
                 <label className="text-[10px] font-black text-slate-500 uppercase ml-1">Hostel</label>
-                <select value={admissionForm.hostel_name} onChange={e => setAdmissionForm({...admissionForm, hostel_name: e.target.value})} className="w-full p-3 bg-slate-50 border rounded-xl">
+                <select value={admissionForm.hostel_name} onChange={e => setAdmissionForm({...admissionForm, hostel_name: e.target.value})} className="w-full p-3 bg-[#FAF9F6] border rounded-xl">
                   <option value="Boys Hostel">Boys Hostel</option>
                   <option value="Inside Campus Girls Hostel">Inside Campus Girls Hostel</option>
                   <option value="Outside Hostel (Girls)">Outside Hostel (Girls)</option>
                 </select>
               </div>
               <div className="space-y-1 relative">
-                <label className="text-[10px] font-black text-slate-500 uppercase ml-1">Room No (101-110)</label>
-                <input required value={admissionForm.room_number} onChange={e => setAdmissionForm({...admissionForm, room_number: e.target.value})} placeholder="e.g. 101" className="w-full p-3 bg-slate-50 border rounded-xl" />
+                <label className="text-[10px] font-black text-slate-500 uppercase ml-1">Room No (101-120)</label>
+                <input required value={admissionForm.room_number} onChange={e => setAdmissionForm({...admissionForm, room_number: e.target.value})} placeholder="e.g. 101" className="w-full p-3 bg-[#FAF9F6] border rounded-xl" />
                 {admissionForm.room_number && (
                   <div className="absolute -bottom-5 left-1 flex items-center gap-2">
                     {(() => {
@@ -262,7 +308,7 @@ export default function WardenDashboard() {
                       const isFull = occupants.length >= capacity;
                       return (
                         <>
-                          <div className={`w-1.5 h-1.5 rounded-full ${isFull ? 'bg-red-500' : 'bg-emerald-500'}`}></div>
+                          <div className={`w-1.5 h-1.5 rounded-full ${isFull ? 'bg-red-500' : 'bg-[#FAF9F6]/400'}`}></div>
                           <span className={`text-[9px] font-black uppercase tracking-tighter ${isFull ? 'text-red-600' : 'text-emerald-600'}`}>
                             {occupants.length}/{capacity} Filled • {capacity - occupants.length} Vacant Beds
                           </span>
@@ -274,17 +320,17 @@ export default function WardenDashboard() {
               </div>
               <div className="space-y-1">
                 <label className="text-[10px] font-black text-slate-500 uppercase ml-1">Sharing Type</label>
-                <select value={admissionForm.sharing_type} onChange={e => setAdmissionForm({...admissionForm, sharing_type: e.target.value})} className="w-full p-3 bg-slate-50 border rounded-xl">
+                <select value={admissionForm.sharing_type} onChange={e => setAdmissionForm({...admissionForm, sharing_type: e.target.value})} className="w-full p-3 bg-[#FAF9F6] border rounded-xl">
                   <option value="2">2 Sharing</option>
                   <option value="3">3 Sharing</option>
                   <option value="4">4 Sharing</option>
                 </select>
               </div>
-              <button type="submit" className="md:col-span-4 bg-[#2E8B57] text-white font-black py-4 rounded-xl hover:bg-[#257046] shadow-lg shadow-emerald-600/20">Allocate Room & Admit Student</button>
+              <button type="submit" className="md:col-span-4 bg-[#738a6e] text-[#FAF9F6] font-black py-4 rounded-xl hover:bg-[#94A185] shadow-lg shadow-emerald-600/20">Allocate Room & Admit Student</button>
             </form>
           </div>
 
-          <div className="bg-white p-4 rounded-2xl border shadow-sm flex items-center gap-3">
+          <div className="bg-[#FAF9F6] p-4 rounded-2xl border shadow-sm flex items-center gap-3">
             <Search className="text-slate-400" />
             <input 
               type="text" 
@@ -295,9 +341,9 @@ export default function WardenDashboard() {
             />
           </div>
           
-          <div className="bg-white rounded-3xl border shadow-sm overflow-hidden">
+          <div className="bg-[#FAF9F6] rounded-3xl border shadow-sm overflow-hidden">
             <table className="w-full text-left border-collapse">
-              <thead className="bg-slate-50 border-b border-slate-200">
+              <thead className="bg-[#FAF9F6] border-b border-[#FAF9F6]">
                 <tr>
                   <th className="p-4 text-xs font-black uppercase text-slate-500 tracking-wider">Student Name</th>
                   <th className="p-4 text-xs font-black uppercase text-slate-500 tracking-wider">Room</th>
@@ -308,13 +354,13 @@ export default function WardenDashboard() {
               </thead>
               <tbody className="divide-y divide-slate-100">
                 {filteredAllocations.map(alloc => (
-                  <tr key={alloc.id} className="hover:bg-slate-50 transition-colors">
+                  <tr key={alloc.id} className="hover:bg-[#FAF9F6] transition-colors">
                     <td className="p-4 font-bold text-slate-800">{alloc.student_name}</td>
-                    <td className="p-4 font-semibold text-[#2E8B57]">Room {alloc.room_number}</td>
+                    <td className="p-4 font-semibold text-[#738a6e]">Room {alloc.room_number}</td>
                     <td className="p-4 text-sm text-slate-600">{alloc.hostel_name}</td>
-                    <td className="p-4 text-sm text-slate-500"><a href={`mailto:${alloc.student_email}`} className="hover:text-[#2E8B57]">{alloc.student_email}</a></td>
+                    <td className="p-4 text-sm text-slate-500"><a href={`mailto:${alloc.student_email}`} className="hover:text-[#738a6e]">{alloc.student_email}</a></td>
                     <td className="p-4 text-right flex justify-end gap-2">
-                      <button onClick={() => openStudentProfile(alloc.student_email)} className="text-xs font-bold bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 px-3 py-1.5 rounded-lg shadow-sm">View Profile</button>
+                      <button onClick={() => openStudentProfile(alloc.student_email)} className="text-xs font-bold bg-[#FAF9F6] border border-[#FAF9F6] text-slate-600 hover:bg-[#FAF9F6] px-3 py-1.5 rounded-lg shadow-sm">View Profile</button>
                       <button onClick={() => handleVacate(alloc.id)} className="text-xs font-bold bg-red-50 border border-red-100 text-red-600 hover:bg-red-100 px-3 py-1.5 rounded-lg">Vacate</button>
                     </td>
                   </tr>
@@ -332,39 +378,39 @@ export default function WardenDashboard() {
       {activeTab === 'map' && (
         <div className="space-y-8">
           {/* HOSTEL SELECTOR FOR MAP */}
-          <div className="flex gap-4 p-1 bg-slate-100 rounded-2xl w-fit">
+          <div className="flex flex-wrap gap-4 p-1 bg-[#FAF9F6]/60 rounded-2xl w-fit">
             {['Boys Hostel', 'Inside Campus Girls Hostel', 'Outside Hostel (Girls)'].map(h => (
               <button 
                 key={h}
-                onClick={() => setAnnouncementForm({...announcementForm, hostel_name: h})} // Reusing state or creating new one
-                className={`px-6 py-2.5 rounded-xl font-bold text-sm transition ${announcementForm.hostel_name === h ? 'bg-white text-[#2E8B57] shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                onClick={() => setMapHostel(h)}
+                className={`px-6 py-2.5 rounded-xl font-bold text-sm transition ${mapHostel === h ? 'bg-[#FAF9F6] text-[#738a6e] shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
               >
                 {h}
               </button>
             ))}
           </div>
 
-          <div className="bg-white p-8 rounded-3xl border shadow-sm">
+          <div className="bg-[#FAF9F6] p-8 rounded-3xl border shadow-sm">
              <div className="flex justify-between items-center mb-8">
-                <h3 className="text-xl font-black text-slate-800">Room Status Loop: {announcementForm.hostel_name}</h3>
+                <h3 className="text-xl font-black text-slate-800">Room Status Lookup: {mapHostel}</h3>
                 <div className="flex gap-6">
                   <div className="flex items-center gap-2"><div className="w-3 h-3 bg-red-500 rounded-full"></div> <span className="text-xs font-bold text-slate-500">Full</span></div>
                   <div className="flex items-center gap-2"><div className="w-3 h-3 bg-amber-500 rounded-full"></div> <span className="text-xs font-bold text-slate-500">Partial</span></div>
-                  <div className="flex items-center gap-2"><div className="w-3 h-3 bg-emerald-500 rounded-full"></div> <span className="text-xs font-bold text-slate-500">Vacant</span></div>
+                  <div className="flex items-center gap-2"><div className="w-3 h-3 bg-[#FAF9F6]/400 rounded-full"></div> <span className="text-xs font-bold text-slate-500">Vacant</span></div>
                 </div>
              </div>
 
              <div className="grid grid-cols-2 md:grid-cols-5 gap-6">
-              {Array.from({ length: 10 }, (_, i) => 101 + i).map(roomNum => {
+              {Array.from({ length: 20 }, (_, i) => 101 + i).map(roomNum => {
                 const roomStr = roomNum.toString();
-                const occupants = allocations.filter(a => a.hostel_name === announcementForm.hostel_name && a.room_number === roomStr);
+                const occupants = allocations.filter(a => a.hostel_name === mapHostel && a.room_number === roomStr);
                 
                 // Determine capacity based on first occupant's sharing type or default to 2
                 const capacity = occupants.length > 0 ? parseInt(occupants[0].sharing_type?.toString() || '2') : 2;
                 const vacancy = capacity - occupants.length;
                 
-                let statusColor = 'border-emerald-200 bg-emerald-50 text-emerald-700';
-                let dotColor = 'bg-emerald-500';
+                let statusColor = 'border-emerald-200 bg-[#FAF9F6]/40 text-[#738a6e]';
+                let dotColor = 'bg-[#FAF9F6]/400';
                 
                 if (occupants.length === capacity) {
                   statusColor = 'border-red-200 bg-red-50 text-red-700';
@@ -406,10 +452,10 @@ export default function WardenDashboard() {
           <div className="space-y-4">
             <h3 className="font-black text-xl text-slate-800">Student Complaints</h3>
             {complaints.map(comp => (
-              <div key={comp.id} className={`p-6 rounded-2xl border shadow-sm cursor-pointer transition ${complaintResponse.id === comp.id ? 'bg-slate-50 border-slate-300 ring-2 ring-[#2E8B57]/20' : 'bg-white border-slate-200 hover:border-slate-300'}`} onClick={() => setComplaintResponse({ id: comp.id, status: comp.status, response: comp.warden_response || '' })}>
+              <div key={comp.id} className={`p-6 rounded-2xl border shadow-sm cursor-pointer transition ${complaintResponse.id === comp.id ? 'bg-[#FAF9F6] border-slate-300 ring-2 ring-[#738a6e]/20' : 'bg-[#FAF9F6] border-[#FAF9F6] hover:border-slate-300'}`} onClick={() => setComplaintResponse({ id: comp.id, status: comp.status, response: comp.warden_response || '' })}>
                 <div className="flex justify-between items-start mb-2">
-                  <span className="text-xs font-black uppercase text-slate-500 bg-slate-100 px-2 py-1 rounded">{comp.issue_type}</span>
-                  <span className={`text-[10px] font-bold px-2 py-1 rounded uppercase tracking-wider ${comp.status === 'Pending' ? 'bg-red-100 text-red-700' : comp.status === 'In Progress' ? 'bg-amber-100 text-amber-700' : 'bg-emerald-100 text-emerald-700'}`}>
+                  <span className="text-xs font-black uppercase text-slate-500 bg-[#FAF9F6]/60 px-2 py-1 rounded">{comp.issue_type}</span>
+                  <span className={`text-[10px] font-bold px-2 py-1 rounded uppercase tracking-wider ${comp.status === 'Pending' ? 'bg-red-100 text-red-700' : comp.status === 'In Progress' ? 'bg-amber-100 text-amber-700' : 'bg-emerald-100 text-[#738a6e]'}`}>
                     {comp.status}
                   </span>
                 </div>
@@ -421,13 +467,13 @@ export default function WardenDashboard() {
           </div>
 
           <div>
-            <div className="bg-white p-6 rounded-3xl border shadow-sm sticky top-24">
-              <h3 className="font-black text-xl text-slate-800 mb-6 flex items-center gap-2"><AlertTriangle className="text-[#2E8B57]" size={20}/> Update Status Loop</h3>
+            <div className="bg-[#FAF9F6] p-6 rounded-3xl border shadow-sm sticky top-24">
+              <h3 className="font-black text-xl text-slate-800 mb-6 flex items-center gap-2"><AlertTriangle className="text-[#738a6e]" size={20}/> Update Complaint Status</h3>
               {complaintResponse.id ? (
                 <form onSubmit={handleUpdateComplaint} className="space-y-4">
                   <div className="space-y-2">
                     <label className="text-xs font-bold text-slate-500 uppercase">Set Status</label>
-                    <select value={complaintResponse.status} onChange={e => setComplaintResponse({...complaintResponse, status: e.target.value})} className="w-full p-3 bg-slate-50 border rounded-xl font-medium">
+                    <select value={complaintResponse.status} onChange={e => setComplaintResponse({...complaintResponse, status: e.target.value})} className="w-full p-3 bg-[#FAF9F6] border rounded-xl font-medium">
                       <option value="Pending">Pending</option>
                       <option value="In Progress">In Progress</option>
                       <option value="Resolved">Resolved</option>
@@ -435,9 +481,9 @@ export default function WardenDashboard() {
                   </div>
                   <div className="space-y-2">
                     <label className="text-xs font-bold text-slate-500 uppercase">Text Response (Sent to student)</label>
-                    <textarea rows={3} value={complaintResponse.response} onChange={e => setComplaintResponse({...complaintResponse, response: e.target.value})} placeholder="e.g., Maintenance scheduled for tomorrow morning." className="w-full p-3 bg-slate-50 border rounded-xl font-medium" required />
+                    <textarea rows={3} value={complaintResponse.response} onChange={e => setComplaintResponse({...complaintResponse, response: e.target.value})} placeholder="e.g., Maintenance scheduled for tomorrow morning." className="w-full p-3 bg-[#FAF9F6] border rounded-xl font-medium" required />
                   </div>
-                  <button type="submit" className="w-full bg-[#2E8B57] text-white font-black py-4 rounded-xl hover:bg-[#257046] flex justify-center items-center gap-2">
+                  <button type="submit" className="w-full bg-[#738a6e] text-[#FAF9F6] font-black py-4 rounded-xl hover:bg-[#94A185] flex justify-center items-center gap-2">
                     <Send size={18} /> Send Update
                   </button>
                 </form>
@@ -456,15 +502,15 @@ export default function WardenDashboard() {
       {activeTab === 'announcements' && (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-1">
-            <form onSubmit={handleCreateAnnouncement} className="bg-white p-6 rounded-3xl border shadow-sm space-y-4 sticky top-24">
-              <h3 className="font-black text-xl text-slate-800 mb-4 flex items-center gap-2"><Megaphone className="text-[#2E8B57]" size={20}/> Create Notice</h3>
+            <form onSubmit={handleCreateAnnouncement} className="bg-[#FAF9F6] p-6 rounded-3xl border shadow-sm space-y-4 sticky top-24">
+              <h3 className="font-black text-xl text-slate-800 mb-4 flex items-center gap-2"><Megaphone className="text-[#738a6e]" size={20}/> Create Notice</h3>
               <div className="space-y-1">
                 <label className="text-[10px] font-black text-slate-500 uppercase ml-1">Title</label>
-                <input required value={announcementForm.title} onChange={e => setAnnouncementForm({...announcementForm, title: e.target.value})} placeholder="e.g. Water Supply Interruption" className="w-full p-3 bg-slate-50 border rounded-xl" />
+                <input required value={announcementForm.title} onChange={e => setAnnouncementForm({...announcementForm, title: e.target.value})} placeholder="e.g. Water Supply Interruption" className="w-full p-3 bg-[#FAF9F6] border rounded-xl" />
               </div>
               <div className="space-y-1">
                 <label className="text-[10px] font-black text-slate-500 uppercase ml-1">Target Hostel</label>
-                <select value={announcementForm.hostel_name} onChange={e => setAnnouncementForm({...announcementForm, hostel_name: e.target.value})} className="w-full p-3 bg-slate-50 border rounded-xl">
+                <select value={announcementForm.hostel_name} onChange={e => setAnnouncementForm({...announcementForm, hostel_name: e.target.value})} className="w-full p-3 bg-[#FAF9F6] border rounded-xl">
                   <option value="Boys Hostel">Boys Hostel</option>
                   <option value="Inside Campus Girls Hostel">Inside Campus Girls Hostel</option>
                   <option value="Outside Hostel (Girls)">Outside Hostel (Girls)</option>
@@ -473,9 +519,9 @@ export default function WardenDashboard() {
               </div>
               <div className="space-y-1">
                 <label className="text-[10px] font-black text-slate-500 uppercase ml-1">Content</label>
-                <textarea required rows={4} value={announcementForm.content} onChange={e => setAnnouncementForm({...announcementForm, content: e.target.value})} placeholder="Detailed notice content..." className="w-full p-3 bg-slate-50 border rounded-xl" />
+                <textarea required rows={4} value={announcementForm.content} onChange={e => setAnnouncementForm({...announcementForm, content: e.target.value})} placeholder="Detailed notice content..." className="w-full p-3 bg-[#FAF9F6] border rounded-xl" />
               </div>
-              <button type="submit" className="w-full bg-[#2E8B57] text-white font-black py-4 rounded-xl hover:bg-[#257046] flex justify-center items-center gap-2">
+              <button type="submit" className="w-full bg-[#738a6e] text-[#FAF9F6] font-black py-4 rounded-xl hover:bg-[#94A185] flex justify-center items-center gap-2">
                 <Send size={18} /> Publish Notice
               </button>
             </form>
@@ -484,10 +530,10 @@ export default function WardenDashboard() {
           <div className="lg:col-span-2 space-y-4">
             <h3 className="font-black text-xl text-slate-800 mb-4">Published Notices</h3>
             {announcements.map(ann => (
-              <div key={ann.id} className="bg-white p-6 rounded-2xl border shadow-sm">
+              <div key={ann.id} className="bg-[#FAF9F6] p-6 rounded-2xl border shadow-sm">
                 <div className="flex justify-between items-start mb-3">
                   <h4 className="font-black text-lg text-slate-800">{ann.title}</h4>
-                  <span className="text-[10px] font-bold px-2 py-1 rounded uppercase tracking-wider bg-slate-100 text-slate-600">{ann.hostel_name}</span>
+                  <span className="text-[10px] font-bold px-2 py-1 rounded uppercase tracking-wider bg-[#FAF9F6]/60 text-slate-600">{ann.hostel_name}</span>
                 </div>
                 <p className="text-slate-600 whitespace-pre-wrap">{ann.content}</p>
                 <p className="text-xs text-slate-400 mt-4 flex items-center gap-1"><Clock size={12}/> {new Date(ann.created_at).toLocaleString()}</p>
@@ -500,12 +546,12 @@ export default function WardenDashboard() {
       {/* VIEW PROFILE MODAL */}
       {viewProfileModalOpen && selectedStudentProfile && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl p-8 max-w-lg w-full shadow-2xl relative">
+          <div className="bg-[#FAF9F6] rounded-3xl p-8 max-w-lg w-full shadow-2xl relative">
             <button onClick={() => setViewProfileModalOpen(false)} className="absolute top-6 right-6 text-slate-400 hover:text-slate-700"><XCircle size={24} /></button>
             <h3 className="text-2xl font-black text-slate-800">{selectedStudentProfile.full_name}</h3>
-            <p className="text-sm font-bold text-[#2E8B57] uppercase tracking-wider mb-6">{selectedStudentProfile.branch} • USN: {selectedStudentProfile.usn || 'N/A'}</p>
+            <p className="text-sm font-bold text-[#738a6e] uppercase tracking-wider mb-6">{selectedStudentProfile.branch} • USN: {selectedStudentProfile.usn || 'N/A'}</p>
             <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4 bg-slate-50 p-4 rounded-xl border border-slate-100">
+              <div className="grid grid-cols-2 gap-4 bg-[#FAF9F6] p-4 rounded-xl border border-[#FAF9F6]/50">
                 <div>
                   <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Email</p>
                   <p className="font-semibold text-sm truncate">{selectedStudentProfile.email}</p>

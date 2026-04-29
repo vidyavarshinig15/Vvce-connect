@@ -2,7 +2,7 @@ import { supabaseAdmin } from '@/src/lib/supabase-admin';
 
 export const AuthService = {
   async createUser(email: string, password: string, fullName: string) {
-    if (!email?.endsWith('@vvce.ac.in')) {
+    if (!email?.endsWith('@vvce.ac.in') && email !== 'vvceconnect.official@gmail.com') {
       return { error: 'Only VVCE email addresses allowed' };
     }
 
@@ -25,10 +25,16 @@ export const AuthService = {
           full_name: fullName,
           email,
           role,
-          updated_at: new Date(),
+          updated_at: new Date().toISOString(),
         });
 
       if (profileError) return { error: profileError.message };
+
+      // Link existing hostel allocations if any
+      await supabaseAdmin
+        .from('hostel_allocations')
+        .update({ student_id: authData.user.id })
+        .eq('student_email', email);
 
       await this._logAudit(authData.user.id, 'USER_CREATED', 'profiles', authData.user.id);
     }
@@ -41,7 +47,12 @@ export const AuthService = {
 
     if (emailLower === 'vvceconnect.official@gmail.com') return 'admin';
     if (emailLower.includes('warden')) return 'warden';
-    if (/^vvce\d{2}[a-z0-9]+@vvce\.ac\.in$/.test(emailLower)) return 'student';
+    
+    // Student email patterns: 4vv21cs001@vvce.ac.in or vvce21cs001@vvce.ac.in
+    if (/^(\d[a-z]{2}|[a-z]{4})\d{2}[a-z]{2}\d{3}@vvce\.ac\.in$/.test(emailLower) || /\d{2}[a-z]{2}\d{3}/.test(emailLower)) {
+      return 'student';
+    }
+    
     if (emailLower.endsWith('@vvce.ac.in')) return 'faculty';
 
     return 'student';

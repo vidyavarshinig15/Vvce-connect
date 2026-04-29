@@ -51,10 +51,10 @@ export default function ForgotPasswordPage() {
 
       {/* Forgot Password Card */}
       <div className="relative z-10 w-full max-w-md px-6 py-12">
-        <div className="bg-white/95 backdrop-blur-md rounded-[2.5rem] p-10 shadow-2xl border border-white/20">
+        <div className="bg-[#FAF9F6]/95 backdrop-blur-md rounded-[2.5rem] p-10 shadow-2xl border border-white/20">
           <div className="text-center mb-8">
             <h1 className="text-4xl font-black text-slate-900 tracking-tighter uppercase m-0">Reset Access</h1>
-            <p className="text-[10px] font-black text-[#2E8B57] uppercase tracking-[0.3em] mt-2 m-0">Verify College Email</p>
+            <p className="text-[10px] font-black text-[#738a6e] uppercase tracking-[0.3em] mt-2 m-0">Verify College Email</p>
           </div>
 
           <form onSubmit={handleResetRequest} className="space-y-6">
@@ -66,26 +66,26 @@ export default function ForgotPasswordPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value.toLowerCase())}
                 placeholder="Enter college email ID" 
-                className="w-full p-4 bg-slate-50 border border-slate-100 rounded-2xl outline-none focus:border-[#2E8B57] transition font-medium" 
+                className="w-full p-4 bg-[#FAF9F6] border border-[#FAF9F6]/50 rounded-2xl outline-none focus:border-[#738a6e] transition font-medium" 
               />
             </div>
 
             {status && (
-              <p className={`text-[10px] font-bold uppercase tracking-widest text-center ${status.type === 'error' ? 'text-red-500' : 'text-[#2E8B57]'}`}>
+              <p className={`text-[10px] font-bold uppercase tracking-widest text-center ${status.type === 'error' ? 'text-red-500' : 'text-[#738a6e]'}`}>
                 {status.msg}
               </p>
             )}
 
             <button 
               disabled={loading} 
-              className="w-full bg-[#2E8B57] hover:bg-[#257046] text-white font-black py-4 rounded-2xl shadow-xl shadow-emerald-600/20 transition-all transform active:scale-[0.98] uppercase tracking-widest text-[11px] disabled:opacity-50"
+              className="w-full bg-[#738a6e] hover:bg-[#94A185] text-[#FAF9F6] font-black py-4 rounded-2xl shadow-xl shadow-emerald-600/20 transition-all transform active:scale-[0.98] uppercase tracking-widest text-[11px] disabled:opacity-50"
             >
               {loading ? 'Verifying...' : 'Send Reset Link'}
             </button>
           </form>
 
           <div className="mt-8 text-center">
-            <Link href="/login" className="text-[10px] font-black text-[#2E8B57] uppercase tracking-widest hover:underline underline-offset-4">
+            <Link href="/login" className="text-[10px] font-black text-[#738a6e] uppercase tracking-widest hover:underline underline-offset-4">
               Back to Login
             </Link>
           </div>

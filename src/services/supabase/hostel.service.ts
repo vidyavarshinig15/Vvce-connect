@@ -27,11 +27,24 @@ export const HostelService = {
     }
 
     const { supabaseAdmin } = await import('@/src/lib/supabase-admin');
+    
+    // Attempt to link to an existing student profile if they already signed up
+    let studentId = allocationData.student_id || null;
+    if (!studentId && allocationData.student_email) {
+      const { data: studentProfile } = await supabaseAdmin
+        .from('profiles')
+        .select('id')
+        .eq('email', allocationData.student_email)
+        .single();
+      if (studentProfile) studentId = studentProfile.id;
+    }
 
     const { data, error } = await supabaseAdmin
       .from('hostel_allocations')
       .insert({
         ...allocationData,
+        student_id: studentId,
+        usn: allocationData.usn || '',
         allocated_by: userId,
       })
       .select()
@@ -51,12 +64,6 @@ export const HostelService = {
     }
 
     const { supabaseAdmin } = await import('@/src/lib/supabase-admin');
-
-    const { data: oldData } = await supabaseAdmin
-      .from('hostel_allocations')
-      .select('*')
-      .eq('id', allocationId)
-      .single();
 
     const { error } = await supabaseAdmin
       .from('hostel_allocations')

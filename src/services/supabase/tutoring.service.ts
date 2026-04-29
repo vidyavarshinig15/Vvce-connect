@@ -37,7 +37,7 @@ export const TutoringService = {
       .select(`
         *,
         tutee:profiles!tutee_id(full_name, branch, semester),
-        tutoring_participants(student_id)
+        tutoring_participants(student_id, profiles(*))
       `)
       .eq('status', 'Pending')
       .neq('tutee_id', userId)
@@ -55,13 +55,37 @@ export const TutoringService = {
 
   async getMyTeachings(userId: string) {
     const supabase = createClient();
-    const { data, error } = await supabase
+    
+    const { data: teachingsData, error: teachingsError } = await supabase
       .from('tutoring_requests')
       .select('*, tutee:profiles!tutee_id(*), tutoring_participants(student_id, profiles(*))')
       .eq('tutor_id', userId)
       .order('created_at', { ascending: false });
 
-    return { data, error };
+    const { data: proposalsData, error: proposalsError } = await supabase
+      .from('tutoring_proposals')
+      .select('request_id, status, tutoring_requests(*, tutee:profiles!tutee_id(*), tutoring_participants(student_id, profiles(*)))')
+      .eq('tutor_id', userId);
+
+    if (teachingsError) return { data: null, error: teachingsError };
+    if (proposalsError) return { data: null, error: proposalsError };
+
+    const combinedMap = new Map();
+    
+    (teachingsData || []).forEach((req: any) => {
+      combinedMap.set(req.id, req);
+    });
+
+    (proposalsData || []).forEach((prop: any) => {
+      if (prop.tutoring_requests && prop.status === 'Pending') {
+         const req = Array.isArray(prop.tutoring_requests) ? prop.tutoring_requests[0] : prop.tutoring_requests;
+         if (req && !combinedMap.has(req.id)) {
+           combinedMap.set(req.id, { ...req, status: 'Proposed' });
+         }
+      }
+    });
+
+    return { data: Array.from(combinedMap.values()), error: null };
   },
 
   async createRequest(userId: string, requestData: any) {
@@ -132,6 +156,9 @@ export const TutoringService = {
       })
       .select()
       .single();
+
+    // Removed the silent failing update to tutoring_requests since RLS prevents it.
+    // The UI now dynamically infers 'Proposed' status based on tutoring_proposals.
 
     return { data, error };
   },

@@ -1,6 +1,6 @@
 import Image from 'next/image';
 import Link from 'next/link';
-import { ArrowRight, BookOpen, Code, GraduationCap, Building, Users } from 'lucide-react';
+import { ArrowRight, BookOpen, Code, GraduationCap } from 'lucide-react';
 import { createClient } from '@/src/utils/supabase/server';
 
 export default async function LandingPage() {
@@ -8,129 +8,201 @@ export default async function LandingPage() {
   const { data: { user } } = await supabase.auth.getUser();
 
   return (
-    <div className="flex flex-col w-full">
+    <div className="flex flex-col w-full bg-[#FAF9F6] min-h-screen font-sans">
+      
       {/* HERO SECTION */}
-      <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden bg-white">
-        {/* Background Pattern */}
-        <div className="absolute inset-0 z-0 opacity-[0.03]" style={{ backgroundImage: 'radial-gradient(#2E8B57 2px, transparent 2px)', backgroundSize: '40px 40px' }}></div>
+      <section className="flex flex-col items-center justify-center pt-32 pb-24 px-6 text-center">
+        <h1 className="text-6xl md:text-[5.5rem] font-black tracking-tighter text-slate-900 leading-[0.95] max-w-5xl mx-auto mb-6">
+          Intelligent Campus Ecosystem.<br />
+          <span className="text-[#738a6e]">Reliable Connectivity.</span>
+        </h1>
         
-        <div className="max-w-7xl mx-auto px-6 pt-20 pb-16 relative z-10 flex flex-col items-center text-center">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-50 border border-emerald-100 mb-8 animate-fade-in">
-            <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-            </span>
-            <span className="text-xs font-bold text-[#2E8B57] uppercase tracking-wider">Campus Digital Gateway</span>
-          </div>
+        <p className="text-lg md:text-xl text-slate-500 font-medium max-w-2xl mx-auto mb-10 leading-relaxed">
+          The high-clarity digital toolkit for Vidyavardhaka College of Engineering. 
+          Stop guessing, start streamlining your campus life.
+        </p>
 
-          <h1 className="text-5xl md:text-7xl lg:text-8xl font-black tracking-tighter text-slate-900 leading-[0.9] mb-8">
-            VVCE <span className="text-[#2E8B57]">CONNECT</span>
-          </h1>
+        <Link 
+          href={user ? "/dashboard" : "/login"} 
+          className="bg-[#738a6e] text-[#FAF9F6] px-8 py-4 rounded-xl font-bold text-lg hover:bg-[#94A185] transition-colors shadow-lg"
+        >
+          {user ? "Go to Dashboard" : "Get Started"}
+        </Link>
+        <p className="text-xs text-slate-400 font-medium italic mt-4">
+          Available for all VVCE students and faculty
+        </p>
+      </section>
+
+      {/* HOW IT WORKS HEADER */}
+      <section id="features" className="pt-16 pb-12 px-6 text-center">
+        <h2 className="text-4xl md:text-5xl font-black tracking-tight text-slate-900 mb-3">
+          Features
+        </h2>
+        <p className="text-[#94A185] font-black text-sm md:text-base uppercase tracking-widest">
+          Step-by-step execution for every module in our platform
+        </p>
+      </section>
+
+      {/* FEATURES CARDS SECTION */}
+      <section className="pb-32 px-6 max-w-7xl mx-auto w-full grid grid-cols-1 lg:grid-cols-3 gap-8">
+        
+        {/* CARD 1 */}
+        <div className="bg-[#FAF9F6] border-2 border-[#FAF9F6]/60 p-8 rounded-[2rem] shadow-sm relative overflow-hidden flex flex-col h-full">
+          <div className="w-12 h-12 bg-[#FAF9F6]/50 rounded-2xl flex items-center justify-center mb-6 text-[#738a6e]">
+            <Code size={24} />
+          </div>
+          <h3 className="text-2xl font-black text-slate-900 tracking-tight mb-8">Hackathon Hub</h3>
           
-          <p className="max-w-2xl text-lg md:text-xl text-slate-500 font-medium mb-12 leading-relaxed">
-            The unified digital ecosystem for Vidyavardhaka College of Engineering. Streamlining campus life for students, faculty, and administration.
-          </p>
-
-          <div className="flex flex-col sm:flex-row gap-4">
-            <Link href={user ? "/dashboard" : "/login"} className="px-8 py-4 bg-[#2E8B57] text-white rounded-2xl font-bold text-lg shadow-xl shadow-emerald-600/20 hover:bg-[#257046] transition-all flex items-center gap-3">
-              {user ? "Go to Dashboard" : "Get Started"} <ArrowRight size={20} />
-            </Link>
-            <Link href="#features" className="px-8 py-4 bg-white text-slate-900 border-2 border-slate-100 rounded-2xl font-bold text-lg hover:border-emerald-100 hover:bg-emerald-50/30 transition-all">
-              Explore Features
-            </Link>
+          <div className="relative pl-10 space-y-8 flex-1">
+            <div className="absolute left-[15px] top-2 bottom-8 w-px border-l-2 border-dashed border-[#FAF9F6]"></div>
+            
+            <div className="relative">
+              <div className="absolute -left-10 top-0 w-8 h-8 rounded-full border-2 border-[#94A185] bg-[#FAF9F6] flex items-center justify-center text-[#94A185] text-xs font-black">01</div>
+              <h4 className="text-sm font-black text-slate-900 mb-1">Profile Setup</h4>
+              <p className="text-xs text-slate-500 font-medium leading-relaxed">Students configure their technical skills and past achievements.</p>
+            </div>
+            <div className="relative">
+              <div className="absolute -left-10 top-0 w-8 h-8 rounded-full border-2 border-[#94A185] bg-[#FAF9F6] flex items-center justify-center text-[#94A185] text-xs font-black">02</div>
+              <h4 className="text-sm font-black text-slate-900 mb-1">Team Creation</h4>
+              <p className="text-xs text-slate-500 font-medium leading-relaxed">Founders create teams and specify the exact roles required.</p>
+            </div>
+            <div className="relative">
+              <div className="absolute -left-10 top-0 w-8 h-8 rounded-full border-2 border-[#94A185] bg-[#FAF9F6] flex items-center justify-center text-[#94A185] text-xs font-black">03</div>
+              <h4 className="text-sm font-black text-slate-900 mb-1">Recruitment</h4>
+              <p className="text-xs text-slate-500 font-medium leading-relaxed">Applicants browse open positions and submit requests to join.</p>
+            </div>
+            <div className="relative">
+              <div className="absolute -left-10 top-0 w-8 h-8 rounded-full border-2 border-[#94A185] bg-[#FAF9F6] flex items-center justify-center text-[#94A185] text-xs font-black">04</div>
+              <h4 className="text-sm font-black text-slate-900 mb-1">Final Roster</h4>
+              <p className="text-xs text-slate-500 font-medium leading-relaxed">Team is finalized and ready for the upcoming technical event.</p>
+            </div>
           </div>
-
-          {/* Floating Stats or Badges */}
-          <div className="mt-20 grid grid-cols-2 md:grid-cols-4 gap-8 w-full max-w-4xl">
-            {[
-              { label: 'Students', value: '4000+' },
-              { label: 'Faculty', value: '250+' },
-              { label: 'Modules', value: '12+' },
-              { label: 'Efficiency', value: '100%' },
-            ].map((stat, i) => (
-              <div key={i} className="flex flex-col">
-                <span className="text-3xl font-black text-slate-900">{stat.value}</span>
-                <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">{stat.label}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* FEATURES SECTION */}
-      <section id="features" className="py-24 px-6 bg-slate-50 scroll-mt-20">
-        <div className="max-w-7xl mx-auto">
-          <div className="mb-16">
-            <p className="text-xs font-black uppercase tracking-[0.2em] text-[#2E8B57] mb-4">Unified Experience</p>
-            <h2 className="text-4xl md:text-5xl font-black tracking-tight text-slate-900">
-              Everything your campus needs,<br />in one single platform.
-            </h2>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            <FeatureCard 
-              icon={<Code className="text-[#2E8B57]" size={28} />}
-              title="Hackathon Hub"
-              description="Build your dream team or browse specialized skills. Vet applicant profiles and recruit the best talent for upcoming tech events."
-            />
-            <FeatureCard 
-              icon={<BookOpen className="text-[#2E8B57]" size={28} />}
-              title="Peer Tutoring"
-              description="A collaborative learning platform where students can post help requests or volunteer to tutor others in specific subjects."
-            />
-            <FeatureCard 
-              icon={<Building className="text-[#2E8B57]" size={28} />}
-              title="Hostel Portal"
-              description="Integrated ecosystem for residents to raise maintenance complaints, track real-time status, and view warden announcements."
-            />
-            <FeatureCard 
-              icon={<GraduationCap className="text-[#2E8B57]" size={28} />}
-              title="Venue Booking"
-              description="Dedicated faculty tool for reserving M-Block interactive classrooms with automated section calculation and conflict prevention."
-            />
-            <FeatureCard 
-              icon={<Users className="text-[#2E8B57]" size={28} />}
-              title="Warden Center"
-              description="Complete administrative suite for student directories, real-time room mapping with vacancy tracking, and complaint resolution."
-            />
-            <FeatureCard 
-              icon={<ArrowRight className="text-[#2E8B57]" size={28} />}
-              title="System Admin"
-              description="Global management panel for authorized personnel to monitor user activity, audit logs, and manage the campus digital gateway."
-            />
+          
+          <div className="mt-8 bg-[#FAF9F6]/30 text-[#738a6e] text-[10px] font-black uppercase tracking-widest py-3 px-4 rounded-xl text-center border border-[#FAF9F6]/50">
+            ✦ FULL ACCESS: SMART MATCHING
           </div>
         </div>
+
+        {/* CARD 2 */}
+        <div className="bg-[#FAF9F6] border-2 border-[#FAF9F6]/60 p-8 rounded-[2rem] shadow-sm relative overflow-hidden flex flex-col h-full">
+          <div className="w-12 h-12 bg-[#FAF9F6]/50 rounded-2xl flex items-center justify-center mb-6 text-[#738a6e]">
+            <BookOpen size={24} />
+          </div>
+          <h3 className="text-2xl font-black text-slate-900 tracking-tight mb-8">Peer Tutoring</h3>
+          
+          <div className="relative pl-10 space-y-8 flex-1">
+            <div className="absolute left-[15px] top-2 bottom-8 w-px border-l-2 border-dashed border-[#FAF9F6]"></div>
+            
+            <div className="relative">
+              <div className="absolute -left-10 top-0 w-8 h-8 rounded-full border-2 border-[#94A185] bg-[#FAF9F6] flex items-center justify-center text-[#94A185] text-xs font-black">01</div>
+              <h4 className="text-sm font-black text-slate-900 mb-1">Request Help</h4>
+              <p className="text-xs text-slate-500 font-medium leading-relaxed">Student posts a detailed request for a specific academic subject.</p>
+            </div>
+            <div className="relative">
+              <div className="absolute -left-10 top-0 w-8 h-8 rounded-full border-2 border-[#94A185] bg-[#FAF9F6] flex items-center justify-center text-[#94A185] text-xs font-black">02</div>
+              <h4 className="text-sm font-black text-slate-900 mb-1">Volunteer Matching</h4>
+              <p className="text-xs text-slate-500 font-medium leading-relaxed">Available tutors browse the board and submit teaching proposals.</p>
+            </div>
+            <div className="relative">
+              <div className="absolute -left-10 top-0 w-8 h-8 rounded-full border-2 border-[#94A185] bg-[#FAF9F6] flex items-center justify-center text-[#94A185] text-xs font-black">03</div>
+              <h4 className="text-sm font-black text-slate-900 mb-1">Session Scheduling</h4>
+              <p className="text-xs text-slate-500 font-medium leading-relaxed">Tutor proposes a specific date, time, and online or physical venue.</p>
+            </div>
+            <div className="relative">
+              <div className="absolute -left-10 top-0 w-8 h-8 rounded-full border-2 border-[#94A185] bg-[#FAF9F6] flex items-center justify-center text-[#94A185] text-xs font-black">04</div>
+              <h4 className="text-sm font-black text-slate-900 mb-1">Confirmation</h4>
+              <p className="text-xs text-slate-500 font-medium leading-relaxed">Student accepts the proposal and the tutoring session is locked in.</p>
+            </div>
+          </div>
+          
+          <div className="mt-8 bg-[#FAF9F6]/30 text-[#738a6e] text-[10px] font-black uppercase tracking-widest py-3 px-4 rounded-xl text-center border border-[#FAF9F6]/50">
+            ✦ FULL ACCESS: LIVE SCHEDULING
+          </div>
+        </div>
+
+        {/* CARD 3 */}
+        <div className="bg-[#FAF9F6] border-2 border-[#FAF9F6]/60 p-8 rounded-[2rem] shadow-sm relative overflow-hidden flex flex-col h-full">
+          <div className="w-12 h-12 bg-[#FAF9F6]/50 rounded-2xl flex items-center justify-center mb-6 text-[#738a6e]">
+            <GraduationCap size={24} />
+          </div>
+          <h3 className="text-2xl font-black text-slate-900 tracking-tight mb-8">Venue Booking</h3>
+          
+          <div className="relative pl-10 space-y-8 flex-1">
+            <div className="absolute left-[15px] top-2 bottom-8 w-px border-l-2 border-dashed border-[#FAF9F6]"></div>
+            
+            <div className="relative">
+              <div className="absolute -left-10 top-0 w-8 h-8 rounded-full border-2 border-[#94A185] bg-[#FAF9F6] flex items-center justify-center text-[#94A185] text-xs font-black">01</div>
+              <h4 className="text-sm font-black text-slate-900 mb-1">Availability Check</h4>
+              <p className="text-xs text-slate-500 font-medium leading-relaxed">Faculty queries availability for M-Block interactive classrooms.</p>
+            </div>
+            <div className="relative">
+              <div className="absolute -left-10 top-0 w-8 h-8 rounded-full border-2 border-[#94A185] bg-[#FAF9F6] flex items-center justify-center text-[#94A185] text-xs font-black">02</div>
+              <h4 className="text-sm font-black text-slate-900 mb-1">Section Allocation</h4>
+              <p className="text-xs text-slate-500 font-medium leading-relaxed">System instantly calculates required sections based on enrollment.</p>
+            </div>
+            <div className="relative">
+              <div className="absolute -left-10 top-0 w-8 h-8 rounded-full border-2 border-[#94A185] bg-[#FAF9F6] flex items-center justify-center text-[#94A185] text-xs font-black">03</div>
+              <h4 className="text-sm font-black text-slate-900 mb-1">Conflict Prevention</h4>
+              <p className="text-xs text-slate-500 font-medium leading-relaxed">Automatically flags and blocks any overlapping schedule attempts.</p>
+            </div>
+            <div className="relative">
+              <div className="absolute -left-10 top-0 w-8 h-8 rounded-full border-2 border-[#94A185] bg-[#FAF9F6] flex items-center justify-center text-[#94A185] text-xs font-black">04</div>
+              <h4 className="text-sm font-black text-slate-900 mb-1">Final Booking</h4>
+              <p className="text-xs text-slate-500 font-medium leading-relaxed">Venue is officially reserved and visible on the global calendar.</p>
+            </div>
+          </div>
+          
+          <div className="mt-8 bg-[#FAF9F6]/30 text-[#738a6e] text-[10px] font-black uppercase tracking-widest py-3 px-4 rounded-xl text-center border border-[#FAF9F6]/50">
+            ✦ FULL ACCESS: CONFLICT RESOLUTION
+          </div>
+        </div>
+
       </section>
 
-      {/* CALL TO ACTION */}
-      <section className="py-24 px-6">
-        <div className="max-w-5xl mx-auto bg-[#2E8B57] rounded-[3rem] p-12 md:p-20 text-center relative overflow-hidden shadow-2xl shadow-emerald-900/20">
-          <div className="relative z-10">
-            <h2 className="text-4xl md:text-6xl font-black text-white mb-8 tracking-tighter">Ready to connect?</h2>
-            <p className="text-emerald-100 text-lg md:text-xl font-medium mb-12 max-w-xl mx-auto">
-              Join thousands of students and faculty members already using the platform.
+      {/* FOOTER SECTION */}
+      <footer id="contact" className="bg-[#0B1121] text-slate-300 py-16 px-6 border-t border-[#1e293b]">
+        <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-12 mb-16">
+          <div className="md:col-span-1">
+            <h3 className="text-white text-xl font-black mb-4">VVCE Connect</h3>
+            <p className="text-sm font-medium leading-relaxed opacity-80">
+              A unified digital ecosystem to help you connect your campus faster and maintain a flawless student experience.
             </p>
-            <Link href={user ? "/dashboard" : "/login"} className="inline-flex items-center gap-3 px-10 py-5 bg-white text-[#2E8B57] rounded-2xl font-black text-xl hover:scale-105 transition-transform shadow-xl">
-              {user ? "Back to Dashboard" : "Log In Now"}
-            </Link>
           </div>
-          {/* Decorative Circle */}
-          <div className="absolute -bottom-24 -right-24 w-96 h-96 bg-white/10 rounded-full blur-3xl"></div>
-          <div className="absolute -top-24 -left-24 w-96 h-96 bg-emerald-400/10 rounded-full blur-3xl"></div>
+          
+          <div>
+            <h4 className="text-white font-bold mb-4">Product</h4>
+            <ul className="space-y-3 text-sm font-medium opacity-80">
+              <li><Link href="#features" className="hover:text-white transition">How It Works</Link></li>
+              <li><Link href="#features" className="hover:text-white transition">Features</Link></li>
+              
+            </ul>
+          </div>
+          
+          
+          
+          <div>
+            <h4 className="text-white font-bold mb-4">Contact</h4>
+            <ul className="space-y-3 text-sm font-medium opacity-80">
+              <li><a href="mailto:info@vvce.ac.in" className="hover:text-white transition">info@vvce.ac.in</a></li>
+              <li><a href="tel:0000000000" className="hover:text-white transition">Ph no:0000000000</a></li>
+              <li className="pt-2">
+                <span className="font-bold text-white block mb-1">Address:</span>
+                Vidyavardhaka College of Engineering<br/>
+                P.B. No.206, Gokulam III Stage,<br/>
+                Mysuru - 570 002
+              </li>
+            </ul>
+          </div>
         </div>
-      </section>
-    </div>
-  );
-}
+        
+        <div className="max-w-7xl mx-auto pt-8 border-t border-slate-800 flex flex-col md:flex-row items-center justify-between gap-4">
+          <p className="text-sm opacity-70">© 2026 VVCE Connect - All rights reserved</p>
+          <div className="flex items-center gap-3">
+            
+          </div>
+        </div>
+      </footer>
 
-function FeatureCard({ icon, title, description }: { icon: React.ReactNode, title: string, description: string }) {
-  return (
-    <div className="bg-white p-10 rounded-[2.5rem] border border-slate-100 shadow-sm hover:shadow-xl hover:shadow-emerald-900/5 transition-all group">
-      <div className="w-14 h-14 bg-emerald-50 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-        {icon}
-      </div>
-      <h3 className="text-2xl font-black text-slate-900 mb-4 tracking-tight">{title}</h3>
-      <p className="text-slate-500 font-medium leading-relaxed">{description}</p>
     </div>
   );
 }
