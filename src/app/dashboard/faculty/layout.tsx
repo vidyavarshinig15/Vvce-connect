@@ -1,10 +1,13 @@
 import { User, Calendar, LogOut, LayoutDashboard, UserCircle } from 'lucide-react';
 import Link from 'next/link';
 import { createClient } from '@/src/utils/supabase/server';
+import { redirect } from 'next/navigation';
 
 export default async function FacultyLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
+
+  if (!user) redirect('/login');
 
   let profileName = user?.user_metadata?.full_name || 'Faculty';
   let userRole = 'Faculty';
@@ -17,6 +20,9 @@ export default async function FacultyLayout({ children }: { children: React.Reac
       .single();
     
     if (profile) {
+      if (profile.role !== 'faculty' && profile.role !== 'admin') {
+        redirect('/dashboard');
+      }
       profileName = profile.full_name;
       userRole = profile.role.charAt(0).toUpperCase() + profile.role.slice(1);
     }

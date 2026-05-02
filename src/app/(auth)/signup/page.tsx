@@ -27,6 +27,14 @@ export default function SignupPage() {
     setStatus(null);
 
     try {
+      // 0. Pre-flight Validation: Strictly restrict to @vvce.ac.in
+      const emailLower = email.toLowerCase();
+      if (!emailLower.endsWith('@vvce.ac.in') && emailLower !== 'vvceconnect.official@gmail.com') {
+        setStatus({ type: 'error', msg: 'Only official @vvce.ac.in email addresses are permitted.' });
+        setLoading(false);
+        return;
+      }
+
       // 1. SIGN UP WITH SUPABASE
       const { data, error: signUpError } = await supabase.auth.signUp({
         email,
