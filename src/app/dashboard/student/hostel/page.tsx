@@ -38,7 +38,7 @@ export default function StudentHostelDashboard() {
             supabase
               .from('hostel_announcements')
               .select('*')
-              .or(`hostel_name.eq.${allocData.hostel_name},hostel_name.eq.All`)
+              .or(`hostel_name.eq."${allocData.hostel_name}",hostel_name.eq."All Hostels"`)
               .order('created_at', { ascending: false }),
             supabase
               .from('hostel_complaints')

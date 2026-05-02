@@ -29,7 +29,8 @@ export default function TutoringDashboard() {
 
   async function loadData() {
     setLoading(true);
-    const { data: { user } } = await supabase.auth.getUser();
+    const { data: { session } } = await supabase.auth.getSession();
+    const user = session?.user;
     
     if (user) {
       setUserId(user.id);
@@ -102,7 +103,7 @@ export default function TutoringDashboard() {
     setLoading(true);
     try {
       const { error } = await TutoringService.joinRequest(userId, req.id);
-      if (error) throw new Error(error.message || error.toString() || 'Failed to join group');
+      if (error) throw new Error(typeof error === 'string' ? error : (error as any).message || 'Failed to join group');
       
       // NOTIFY GROUP LEADER
       await NotificationsService.createNotification(
@@ -123,7 +124,7 @@ export default function TutoringDashboard() {
     setLoading(true);
     try {
       const { error } = await TutoringService.acceptProposal(userId, proposal.id);
-      if (error) throw new Error(error.message || error.toString() || 'Failed to accept proposal');
+      if (error) throw new Error(typeof error === 'string' ? error : (error as any).message || 'Failed to accept proposal');
       
       // NOTIFY THE TUTOR
       await NotificationsService.createNotification(

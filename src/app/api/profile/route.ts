@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/src/utils/supabase/server';
+import { supabaseAdmin } from '@/src/lib/supabase-admin';
 
 type ProfileUpdatePayload = {
   full_name?: string;
@@ -38,6 +39,8 @@ export async function POST(request: Request) {
       achievements: body.achievements ?? '',
       linkedin_url: body.linkedin_url ?? '',
     };
+    // USN is intentionally omitted from the 'profiles' updates because it does not exist in that table.
+    // It will be synced exclusively to 'hostel_allocations' below.
 
     const { error } = await supabase
       .from('profiles')
@@ -47,6 +50,27 @@ export async function POST(request: Request) {
     if (error) {
       console.error('Profile Update DB Error:', error);
       return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+
+    // SYNC WITH WARDEN DASHBOARD (hostel_allocations)
+    if (user.email) {
+      const allocationUpdates: any = {};
+      if (body.full_name) allocationUpdates.student_name = body.full_name;
+      if (body.phone !== undefined) allocationUpdates.phone = body.phone;
+      if (body.branch !== undefined) allocationUpdates.branch = body.branch;
+      if (body.usn !== undefined) allocationUpdates.usn = body.usn;
+
+      if (Object.keys(allocationUpdates).length > 0) {
+        const { error: allocError } = await supabaseAdmin
+          .from('hostel_allocations')
+          .update(allocationUpdates)
+          .eq('student_email', user.email);
+
+        if (allocError) {
+          console.error('Failed to sync profile updates to hostel_allocations:', allocError);
+          // We don't throw here to avoid failing the user profile update just because they aren't in a hostel
+        }
+      }
     }
 
     return NextResponse.json({ message: 'Profile updated successfully' }, { status: 200 });

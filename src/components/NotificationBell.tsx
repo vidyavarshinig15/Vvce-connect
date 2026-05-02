@@ -21,7 +21,8 @@ export default function NotificationBell() {
   useEffect(() => {
     const supabase = createClient();
     async function fetchNotifications() {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { session } } = await supabase.auth.getSession();
+      const user = session?.user;
       if (!user) return;
 
       const { data } = await NotificationsService.getNotifications(user.id);
@@ -52,7 +53,8 @@ export default function NotificationBell() {
 
   const markAllAsRead = async () => {
     const supabase = createClient();
-    const { data: { user } } = await supabase.auth.getUser();
+    const { data: { session } } = await supabase.auth.getSession();
+    const user = session?.user;
     if (!user) return;
 
     await NotificationsService.markAllAsRead(user.id);
