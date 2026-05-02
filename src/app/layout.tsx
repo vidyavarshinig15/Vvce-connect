@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
-import { Space_Grotesk } from "next/font/google";
+import { Inter } from "next/font/google";
 import Image from "next/image";
 import Link from "next/link";
 import "./globals.css";
 import { createClient } from "@/src/utils/supabase/server";
 
-const spaceGrotesk = Space_Grotesk({ subsets: ["latin"] });
+const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: "VVCE Connect | Unified Campus Portal",
@@ -18,7 +18,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 
   return (
     <html lang="en" className="h-full scroll-smooth">
-      <body className={`${spaceGrotesk.className} antialiased text-slate-900 flex flex-col min-h-screen m-0 p-0`}>
+      <body className={`${inter.className} antialiased text-slate-900 flex flex-col min-h-screen m-0 p-0`}>
         
         {/* GLOBAL HEADER */}
         <nav className="fixed top-0 w-full bg-[#FAF9F6] border-b border-[#FAF9F6] z-50 shadow-sm">
