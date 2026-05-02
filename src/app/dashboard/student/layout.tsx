@@ -1,11 +1,14 @@
 import Link from 'next/link';
 import { User, Code, BookOpen, Lock, Building, LogOut, UserCircle } from 'lucide-react';
 import { createClient } from '@/src/utils/supabase/server';
+import { redirect } from 'next/navigation';
 
 export default async function StudentLayout({ children }: { children: React.ReactNode }) {
   // 1. Initialize server client and get logged-in user
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
+
+  if (!user) redirect('/login');
 
   let isHosteller = false;
   let profileName = user?.user_metadata?.full_name || 'Student';
@@ -20,6 +23,9 @@ export default async function StudentLayout({ children }: { children: React.Reac
       .single();
     
     if (profile) {
+      if (profile.role !== 'student' && profile.role !== 'admin') {
+        redirect('/dashboard');
+      }
       profileName = profile.full_name;
       userRole = profile.role.charAt(0).toUpperCase() + profile.role.slice(1);
     }

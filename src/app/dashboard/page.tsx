@@ -1,11 +1,12 @@
 import { redirect } from 'next/navigation';
 import { createClient } from '@/src/utils/supabase/server';
+import { createClient as createAdminClient } from '@supabase/supabase-js';
 
 export default async function DashboardRouter() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
-  if (!user) redirect('/login');
+  if (!user || !user.email) redirect('/login');
 
   const { data: profile } = await supabase
     .from('profiles')
@@ -13,30 +14,47 @@ export default async function DashboardRouter() {
     .eq('id', user.id)
     .single();
 
-  let role = profile?.role;
-  const emailLower = user.email?.toLowerCase() || '';
-
-  // Determine role based on email pattern (takes precedence or acts as fallback)
+  const emailLower = user.email.toLowerCase();
+  
+  // 1. Strict Rules Engine
+  let expectedRole: string | null = null;
+  
   if (emailLower === 'vvceconnect.official@gmail.com') {
-    role = 'admin';
-  } else if (emailLower.includes('warden')) {
-    role = 'warden';
+    expectedRole = 'admin';
+  } else if (emailLower === 'warden@vvce.ac.in') {
+    expectedRole = 'warden';
   } else if (emailLower.endsWith('@vvce.ac.in')) {
-    const studentRegex = /^vvce\d{2}[a-z0-9]+@vvce\.ac\.in$/;
+    // Regex: vvce + 2 digits + branch characters + 4 digits + @vvce.ac.in
+    const studentRegex = /^vvce\d{2}[a-z]+\d{4}@vvce\.ac\.in$/;
     if (studentRegex.test(emailLower)) {
-      role = 'student';
+      expectedRole = 'student';
     } else {
-      role = 'faculty';
+      expectedRole = 'faculty'; // Any other @vvce.ac.in email is a faculty
     }
   }
 
-  // Default fallback if still no role
-  if (!role) role = 'student';
+  // If the email doesn't match any rules (e.g. random @gmail.com), throw them out
+  if (!expectedRole) {
+    redirect('/login?error=unauthorized_domain');
+  }
 
-  // Route based on role
-  if (role === 'admin') redirect('/dashboard/admin');
-  if (role === 'faculty') redirect('/dashboard/faculty');
-  if (role === 'warden') redirect('/dashboard/warden');
+  // 2. Database Sync - If the database is wrong (e.g. from a default trigger), FIX IT!
+  if (!profile || profile.role !== expectedRole) {
+    const supabaseAdmin = createAdminClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
+    
+    await supabaseAdmin
+      .from('profiles')
+      .update({ role: expectedRole })
+      .eq('id', user.id);
+  }
+
+  // 3. Route based on the strictly determined role
+  if (expectedRole === 'admin') redirect('/dashboard/admin');
+  if (expectedRole === 'faculty') redirect('/dashboard/faculty');
+  if (expectedRole === 'warden') redirect('/dashboard/warden');
 
   // Default fallback for students
   redirect('/dashboard/student/profile');
