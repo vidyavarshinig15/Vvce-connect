@@ -92,7 +92,3 @@ If you use Supabase auth callback URLs, make sure your Supabase project includes
 - `src/services` - domain-specific Supabase services
 - `schema.sql` and the `*_schema_updates.sql` files - database and permission updates
 
-## Local Notes
-
-- Port 3000 may already be in use, so Next may fall back to 3001 during development.
-- If the dev server is watching too many files in your editor, the project is already configured to use polling-based file watching.
