@@ -5,6 +5,7 @@ const nextConfig: NextConfig = {
     // Adding 100 to the allowed qualities list
     qualities: [25, 50, 75, 80, 90, 100],
   },
+  turbopack: {},
   webpack(config, { dev }) {
     if (dev) {
       config.watchOptions = {
