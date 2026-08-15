@@ -1,94 +1,88 @@
-# VVCE Connect
+# 🌐 VVCE Connect — Unified Campus Portal
 
-VVCE Connect is a Next.js campus portal for Vidyavardhaka College of Engineering. It brings together student, faculty, warden, COE, and admin workflows in one app with Supabase-backed auth and data access.
+### [🚀 View Live Demo](https://vvce-connect-six.vercel.app)
 
-## Features
+[![Next.js](https://img.shields.io/badge/Next.js-16.2-black?style=for-the-badge&logo=next.js)](https://nextjs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue?style=for-the-badge&logo=typescript)](https://www.typescriptlang.org/)
+[![Supabase](https://img.shields.io/badge/Supabase-Database%20%26%20Auth-green?style=for-the-badge&logo=supabase)](https://supabase.com/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind%20CSS-4.0-38bdf8?style=for-the-badge&logo=tailwind-css)](https://tailwindcss.com/)
+[![MIT License](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](LICENSE)
 
-- Authentication flows for login, signup, forgot password, and password reset
-- Role-based dashboards for students, faculty, wardens, COE, and admins
-- Exam duty allocation and announcements
-- Hostel, tutoring, hackathon, and profile workflows
-- Supabase server, browser, and admin clients for authenticated data access
-- Email verification support through Resend
+**VVCE Connect** is a secure, role-based campus portal designed for **Vidyavardhaka College of Engineering (VVCE)**. It solves core academic and administrative logistics by unifying Controller of Examinations (COE) scheduling, faculty duty swapping, hostel management, peer-to-peer tutoring, and student hackathon collaboration into a single, cohesive web platform.
 
-## Tech Stack
+---
 
-- Next.js 16 App Router
-- TypeScript
-- Tailwind CSS
-- Supabase / PostgreSQL
-- Resend for transactional email
+## 💡 Core Engineering Highlights
 
-## Prerequisites
+*   **Granular Role-Based Access Control (RBAC)**: Custom middleware routes and views for 6 distinct roles: **Admin, Student, Faculty, HOD, Warden, and COE**.
+*   **State-Driven Multi-Stage Approvals**: A seamless **Exam Invigilation Swap Workflow** where faculty request duty swaps, progressing automatically through target faculty confirmation ➡️ HOD approval ➡️ COE final sign-off.
+*   **Advanced Row Level Security (RLS)**: Fine-grained PostgreSQL RLS policies in Supabase to restrict read/write access to authorized user scopes.
+*   **Transactional Notifications**: In-app alerts and transactional email dispatches using **Resend** for instant duty updates and magic logins.
 
-- Node.js 18+ or 20+
-- npm
-- A Supabase project
-- A Resend API key if you want verification emails to send in production
+---
 
-## Environment Variables
+## 🗺️ System Workflow Architecture
 
-Create a `.env.local` file in the project root with these values:
+![VVCE Connect Workflow](workflow.png)
 
+---
+
+## ✨ Feature Matrix
+
+| Dashboard / Role | Key Features |
+| :--- | :--- |
+| **🎓 Student** | Hostel outpass/complaints, Peer tutoring matching, Hackathon team finder, Skill profile |
+| **👩‍🏫 Faculty** | Live invigilation schedules, peer-to-peer duty swap requests |
+| **📝 HOD** | Departmental invigilation oversight, first-line approval for duty swaps |
+| **🎓 COE** | Exam schedule manager, room allocator, live duty board, final swap authorizer |
+| **🏠 Warden** | Hostel room/bed allotments, residential announcements, student complaint resolver |
+| **🛠️ Admin** | System auditing, user account role upgrades, database logging |
+
+---
+
+## 🚀 Quick Setup & Installation
+
+### 1. Clone & Install Dependencies
 ```bash
-NEXT_PUBLIC_SUPABASE_URL=
-NEXT_PUBLIC_SUPABASE_ANON_KEY=
-SUPABASE_SERVICE_ROLE_KEY=
-RESEND_API_KEY=
-```
-
-Notes:
-
-- `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` are used by the browser and server Supabase clients.
-- `SUPABASE_SERVICE_ROLE_KEY` is required for admin-only server actions and callback flows that upsert profiles.
-- `RESEND_API_KEY` is optional locally, but email verification will be skipped without it.
-
-## Setup
-
-1. Install dependencies:
-
-```bash
+git clone https://github.com/vidyavarshinig15/Vvce-connect.git
+cd Vvce-connect
 npm install
 ```
 
-2. Add your environment variables to `.env.local`.
+### 2. Configure Environment
+Create a `.env.local` file in your root folder:
+```env
+NEXT_PUBLIC_SUPABASE_URL=your-supabase-url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
+SUPABASE_SERVICE_ROLE_KEY=your-supabase-service-role-key
+RESEND_API_KEY=your-resend-api-key # Optional locally
+```
 
-3. Apply the SQL schema updates in the repository to your Supabase database as needed.
+### 3. Initialize Database
+Navigate to your Supabase SQL Editor and run the SQL scripts stored in the [`database/`](file:///Users/vidyavarshini/Desktop/Vvce-connect-main/database) folder in this order:
+1.  [`schema.sql`](file:///Users/vidyavarshini/Desktop/Vvce-connect-main/database/schema.sql)
+2.  [`exam_allotment_queries.sql`](file:///Users/vidyavarshini/Desktop/Vvce-connect-main/database/exam_allotment_queries.sql)
+3.  Apply incremental schema updates: `coe_schema_update.sql`, `exam_schema_updates.sql`, `workflow_schema_updates.sql`, `fix_exam_allotments_rls.sql`, `fix_notifications_rls.sql`.
 
-4. Start the development server:
-
+### 4. Run Development Server
 ```bash
 npm run dev
 ```
+Open [http://localhost:3000](http://localhost:3000) to view the portal.
 
-The dev script uses Webpack with polling so it works reliably on arm64 Macs in this workspace.
+---
 
-## Scripts
+## 📤 Production Deployment
 
-- `npm run dev` - start the local development server
-- `npm run build` - build the production app
-- `npm run start` - start the production server
-- `npm run lint` - run ESLint
+### Vercel Frontend
+1.  Connect your GitHub repository to **Vercel**.
+2.  Add your `.env.local` keys under Vercel's Environment Variables.
+3.  Deploy! Vercel automatically detects Next.js build settings.
 
-## Deployment
+### Supabase Backend
+Ensure your live Vercel URL (e.g., `https://vvce-connect-six.vercel.app`) is added to the **Redirect URLs** in **Supabase Dashboard > Authentication > URL Configuration** to enable production authorization callbacks.
 
-The easiest deployment path is Vercel.
+---
 
-1. Push your latest changes to GitHub.
-2. Import the repository into Vercel.
-3. Set the environment variables from `.env.local` in the Vercel project settings.
-4. Use the default build settings, or set:
-   - Build command: `npm run build`
-   - Output directory: default Next.js output
-5. Deploy and verify the production URL.
-
-If you use Supabase auth callback URLs, make sure your Supabase project includes the production domain in its allowed redirect URLs.
-
-## Repository Layout
-
-- `src/app` - app routes, layouts, and pages
-- `src/lib` - Supabase and email helpers
-- `src/utils/supabase` - browser, server, and middleware clients
-- `src/services` - domain-specific Supabase services
-- `schema.sql` and the `*_schema_updates.sql` files - database and permission updates
-
+## 📄 License
+Distributed under the MIT License. See `LICENSE` for details.

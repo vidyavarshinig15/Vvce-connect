@@ -18,6 +18,7 @@ CREATE TABLE IF NOT EXISTS public.profiles (
     skills TEXT,
     achievements TEXT,
     linkedin_url TEXT,
+    is_blocked BOOLEAN DEFAULT false,
     updated_at TIMESTAMPTZ DEFAULT NOW(),
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
